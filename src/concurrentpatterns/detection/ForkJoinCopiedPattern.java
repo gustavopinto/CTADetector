@@ -8,7 +8,7 @@ import org.eclipse.jdt.core.dom.FieldDeclaration;
 import org.eclipse.jdt.core.dom.ITypeBinding;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
 import org.eclipse.jdt.core.dom.TypeDeclaration;
-import org.eclipse.jdt.internal.core.SourceMethod;
+import org.eclipse.jdt.core.dom.VariableDeclaration;
 
 public class ForkJoinCopiedPattern extends ASTVisitor {
 
@@ -20,16 +20,23 @@ public class ForkJoinCopiedPattern extends ASTVisitor {
 				List<ITypeBinding> datastructures = getDataStructureFields(node);
 				
 				for(MethodDeclaration method: node.getMethods()) {
+					if(method.isConstructor()) {
+						for(Object param: method.parameters()) {
+							VariableDeclaration var = (VariableDeclaration) param;
+							ITypeBinding type = var.resolveBinding().getType();
+	                        System.out.println(var + " -> " + type);
+						}
+					}
+					
 					if(!method.isConstructor() && method.parameters().size() == 0 && method.getName().equals("compute")) {
-						System.out.println(method.getBody());
-						
-//						method.accept(new ASTVisitor() {
-//							@Override
-//							public boolean visit(MethodDeclaration node) {
-//								// TODO Auto-generated method stub
-//								return super.visit(node);
-//							}
-//						});
+						System.out.println(method.getName());
+						method.accept(new ASTVisitor() {
+							@Override
+							public boolean visit(MethodDeclaration node) {
+								
+								return true;
+							}
+						});
 					}
 				}
 			}
