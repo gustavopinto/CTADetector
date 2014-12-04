@@ -4,8 +4,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.eclipse.jdt.core.dom.ASTVisitor;
+import org.eclipse.jdt.core.dom.Expression;
 import org.eclipse.jdt.core.dom.FieldDeclaration;
 import org.eclipse.jdt.core.dom.ITypeBinding;
+import org.eclipse.jdt.core.dom.IfStatement;
+import org.eclipse.jdt.core.dom.InfixExpression;
+import org.eclipse.jdt.core.dom.InfixExpression.Operator;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
 import org.eclipse.jdt.core.dom.Statement;
 import org.eclipse.jdt.core.dom.TypeDeclaration;
@@ -18,7 +22,7 @@ public class ForkJoinCopiedPattern extends ASTVisitor {
 		ITypeBinding superClass = node.resolveBinding().getSuperclass();
 		if (superClass != null) {
 			if (superClass.getName().equals("RecursiveAction") || superClass.getName().equals("RecursiveTask")) {
-				List<ITypeBinding> datastructures = getDataStructureFields(node);
+				List<FieldDeclaration> datastructures = getDataStructureFields(node);
 				
 				for(MethodDeclaration method: node.getMethods()) {
 					if(method.isConstructor()) {
@@ -51,9 +55,30 @@ public class ForkJoinCopiedPattern extends ASTVisitor {
 		List stms = method.getBody().statements();
 		for (Object o: stms) {
 			Statement s = (Statement) o;
-			System.out.print(s);
+			if (s instanceof IfStatement) {
+                IfStatement ifstmt = (IfStatement) s;
+                Expression ife = ifstmt.getExpression();
+                if (ife instanceof InfixExpression) {
+                	Expression leftOperand = ((InfixExpression) ife).getLeftOperand();
+                    Expression rightOperand = ((InfixExpression) ife).getRightOperand();
+                    Operator op = ((InfixExpression) ife).getOperator();
+                    
+                    boolean ds = isDataStructure(leftOperand);
+                    
+//                    System.out.println(leftOperand);
+//                    System.out.println(op);
+//                    System.out.println(rightOperand);
+                }
+                
+                Statement elsestmt = ifstmt.getElseStatement();
+//                System.out.println(elsestmt);
+			}
 		}
-				
+	}
+
+	private boolean isDataStructure(Expression node) {
+		ITypeBinding type = node.resolveTypeBinding();
+		return type.isArray() || isList(type);
 	}
 
 	/** 
@@ -69,13 +94,13 @@ public class ForkJoinCopiedPattern extends ASTVisitor {
 		}		
 	}
 
-	private List<ITypeBinding> getDataStructureFields(TypeDeclaration node) {
-		List<ITypeBinding> datastructures = new ArrayList<>();
+	private List<FieldDeclaration> getDataStructureFields(TypeDeclaration node) {
+		List<FieldDeclaration> datastructures = new ArrayList<>();
 		for (FieldDeclaration field: node.getFields()) {
 			ITypeBinding currentField = field.getType().resolveBinding();
 			
 			if(currentField.isArray() || isList(currentField)) {
-				datastructures.add(currentField);
+				datastructures.add(field);
 			}
 		}
 		return datastructures;
