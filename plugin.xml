@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+   <extension point="org.eclipse.ui.views">
+        <category 
+           id="concurrencypatterns.view.result"
+           name="Idioms">
+        </category>
+        <view id="concurrencypatterns.view.resultview"
+             name="Idiom Result"
+             category="concurrencypatterns.view.result"
+             class="concurrencypatterns.view.ResultViewer"/>
+   </extension>
+
+   <extension
+         point="org.eclipse.ui.popupMenus">
+      <objectContribution
+            objectClass="org.eclipse.jdt.core.IJavaProject"
+            id="concurrencypatterns.contribution1">
+         <menu
+               label="Detect Idioms"
+               path="additions"
+               id="concurrencypatterns.menu1">
+            <separator
+                  name="group1">
+            </separator>
+         </menu>
+         <!--<action
+               label="Detect Misusages"
+               class="concurrencypatterns.popup.actions.PatternDetectionAction"
+               menubarPath="concurrencypatterns.menu1/group1"
+               enablesFor="1"
+               id="concurrencypatterns.PatternDetectionAction">
+         </action>
+         <action
+               label="Detect Correct Usages"
+               class="concurrencypatterns.popup.actions.CorrectDetectionAction"
+               menubarPath="concurrencypatterns.menu1/group1"
+               enablesFor="1"
+               id="concurrencypatterns.CorrectDetectionAction">
+         </action>-->
+         <action
+               label="Detect ForkJoin Misusage"
+               class="concurrencypatterns.popup.actions.DetectionForkJoinUsagesAction"
+               menubarPath="concurrencypatterns.menu1/group1"
+               enablesFor="1"
+               id="concurrencypatterns.DetectionForkJoinUsagesAction">
+         </action>
+      </objectContribution>
+   </extension>
+</plugin>
