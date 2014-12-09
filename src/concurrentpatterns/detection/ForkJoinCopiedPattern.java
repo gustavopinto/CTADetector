@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.eclipse.jdt.core.dom.ASTVisitor;
+import org.eclipse.jdt.core.dom.Block;
 import org.eclipse.jdt.core.dom.Expression;
 import org.eclipse.jdt.core.dom.FieldDeclaration;
 import org.eclipse.jdt.core.dom.ITypeBinding;
@@ -71,6 +72,24 @@ public class ForkJoinCopiedPattern extends ASTVisitor {
                 }
                 
                 Statement elsestmt = ifstmt.getElseStatement();
+                
+                if (elsestmt instanceof IfStatement) {
+                	IfStatement then = (IfStatement) elsestmt;
+                	if (then.getThenStatement() instanceof Block) {
+                		List statements = ((Block) then.getThenStatement()).statements();
+                		for (Object object : statements) {
+							System.out.println(object);
+						}
+                	}
+                	
+                	System.out.println();
+                }
+                
+//                if (elsestmt instanceof Block) {
+//                	List statements = ((Block) elsestmt).statements();
+//                	for (Object object : statements) {
+//					}
+//                }
 //                System.out.println(elsestmt);
 			}
 		}
