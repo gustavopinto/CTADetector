@@ -3,6 +3,7 @@ package concurrentpatterns.detection;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.ASTVisitor;
@@ -27,8 +28,9 @@ import org.eclipse.jdt.core.dom.VariableDeclarationStatement;
 import org.eclipse.jdt.internal.corext.dom.Bindings;
 
 import concurrencypatterns.util.BlackList;
+import concurrencypatterns.util.PrintableString;
 
-public class ForkJoinCopiedPattern extends ASTVisitor {
+public class ForkJoinCopiedPattern extends ASTVisitor implements Detector {
 
 	private List<ITypeBinding> datastructures = null;
 	
@@ -189,6 +191,10 @@ public class ForkJoinCopiedPattern extends ASTVisitor {
 	private boolean isList(ITypeBinding currentField) {
 		return currentField.getQualifiedName().contains("java.util.List");
 	}
+	
+	public Set<PrintableString> getResults() {
+        return null;
+    }
 
 //	private boolean checkMethodNameAndBinding(
 //            MethodInvocation methodInvocation, String methodName) {
