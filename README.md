@@ -5,7 +5,7 @@ CTADetector
 
 This tool is aimed to detect and refactor a particular misuse of the ForkJoin framework. 
 
-It is created as an Eclipse plug-in. It is a fork from [CTADetector](http://mir.cs.illinois.edu/~yulin2/CTADetector/, from the folks of University of Illinois. 
+It is created as an Eclipse plug-in. It is a fork from [CTADetector](http://mir.cs.illinois.edu/~yulin2/CTADetector/), from the folks of University of Illinois. 
 
 Usage (source code)
 -------------------
