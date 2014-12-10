@@ -2,7 +2,6 @@ package concurrencypatterns.popup.actions;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
@@ -24,9 +23,7 @@ import org.eclipse.ui.IActionDelegate;
 import org.eclipse.ui.IObjectActionDelegate;
 import org.eclipse.ui.IWorkbenchPart;
 
-import concurrencypatterns.util.PrintUtils;
 import concurrencypatterns.util.PrintableString;
-import concurrencypatterns.view.ResultViewer;
 import concurrentpatterns.detection.CollectVariableInfo;
 import concurrentpatterns.detection.ForkJoinCopiedPattern;
 import concurrentpatterns.detection.LazyInitializationPattern;
@@ -95,8 +92,8 @@ public class DetectionForkJoinUsagesAction implements IObjectActionDelegate {
 //                ResultViewer.viewer.setInput(allResult);
 //                ResultViewer.viewer.refresh();
                 
-                MessageDialog.openInformation(shell, "Correct ForkJoin idioms",
-                        "Correct ForkJoin idioms finished.");
+                MessageDialog.openInformation(shell, "Detecting ForkJoin idioms",
+                        "Detecting ForkJoin idioms finished.");
             } catch (JavaModelException e) {
                 e.printStackTrace();
             }
