@@ -75,11 +75,8 @@ public class DetectionForkJoinMisusesAction implements IObjectActionDelegate {
                     root.accept(copied);
                     detections.addAll(copied.getResults());
                     
-                    if (isRewrite) {
-                        ConcurrentCollectionFix fix = new ConcurrentCollectionFix(unit, rewriter);
-                        
-                        run(new ConcurrentCollectionFixWizard(fix, "Concurrent Collection Fix"), shell, "Concurrent Collection Fix");
-                    }
+//                    ConcurrentCollectionFix fix = new ConcurrentCollectionFix(unit, rewriter);
+//                    run(new ConcurrentCollectionFixWizard(fix, "Concurrent Collection Fix"), shell, "Concurrent Collection Fix");
                 }
                 
                 IWorkbenchPage page = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();

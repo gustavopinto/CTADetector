@@ -6,12 +6,10 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
-import org.eclipse.core.resources.IFile;
 import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.ASTVisitor;
 import org.eclipse.jdt.core.dom.Assignment;
 import org.eclipse.jdt.core.dom.Block;
-import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.eclipse.jdt.core.dom.Expression;
 import org.eclipse.jdt.core.dom.ExpressionStatement;
 import org.eclipse.jdt.core.dom.FieldDeclaration;
@@ -28,9 +26,9 @@ import org.eclipse.jdt.core.dom.TypeDeclaration;
 import org.eclipse.jdt.core.dom.VariableDeclaration;
 import org.eclipse.jdt.core.dom.VariableDeclarationFragment;
 import org.eclipse.jdt.core.dom.VariableDeclarationStatement;
+import org.eclipse.jdt.core.dom.rewrite.ASTRewrite;
 import org.eclipse.jdt.internal.corext.dom.Bindings;
 
-import br.ufpe.cin.concurrency.forkjoinpatterns.util.BindingUtils;
 import br.ufpe.cin.concurrency.forkjoinpatterns.util.BlackList;
 import br.ufpe.cin.concurrency.forkjoinpatterns.util.PrintUtils;
 import br.ufpe.cin.concurrency.forkjoinpatterns.util.PrintableString;
@@ -39,7 +37,12 @@ public class ForkJoinCopiedPattern extends ASTVisitor implements Detector {
 
 	private List<ITypeBinding> datastructures = null;
 	private Set<PrintableString> results = new HashSet<PrintableString>();
+	private ASTRewrite rewriter;
 	
+	public ForkJoinCopiedPattern(ASTRewrite rewriter) {
+		this.rewriter = rewriter;
+	}
+
 	@Override
 	public boolean visit(TypeDeclaration node) {
 		ITypeBinding superClass = node.resolveBinding().getSuperclass();
