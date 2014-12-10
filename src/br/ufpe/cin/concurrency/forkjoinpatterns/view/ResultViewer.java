@@ -1,5 +1,7 @@
 package br.ufpe.cin.concurrency.forkjoinpatterns.view;
 
+import java.util.List;
+
 import org.eclipse.core.resources.IFile;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.IDocument;
@@ -14,7 +16,6 @@ import org.eclipse.jface.viewers.TableViewerColumn;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.ui.IEditorRegistry;
@@ -28,8 +29,10 @@ import org.eclipse.ui.texteditor.AbstractTextEditor;
 import br.ufpe.cin.concurrency.forkjoinpatterns.util.PrintableString;
 
 public class ResultViewer extends ViewPart {
-    public static TableViewer viewer;
-
+	public static final String ID = "br.ufpe.cin.concurrency.forkjoinpatterns.view.ResultViewer";
+	 
+    private TableViewer viewer;
+    
     @Override
     public void createPartControl(Composite parent) {
         viewer = new TableViewer(parent, SWT.MULTI | SWT.H_SCROLL
@@ -51,15 +54,26 @@ public class ResultViewer extends ViewPart {
         viewer.getControl().setLayoutData(gridData);
     }
     
+    public void clearData() {
+	    viewer.getTable().clearAll();
+	    viewer.refresh();
+    }
+    
+    public void setInput(List<PrintableString> detections) {
+		viewer.getTable().clearAll();
+		viewer.refresh();
+		viewer.setInput(detections);
+    }
+    
     private void createColumns(final Composite parent, final TableViewer viewer) {
-        String[] titles = { "Type", "Idiom", "File", "Line" };
-        int[] bounds = { 200, 250, 250, 40 };
+        String[] titles = {"Project name",  "Black List", "Path",  "Class", "Line" };
+        int[] bounds = { 150, 200, 250, 250, 40 };
 
         TableViewerColumn col = createTableViewerColumn(titles[0], bounds[0]);
         col.setLabelProvider(new ColumnLabelProvider() {
             @Override
             public String getText(Object element) {
-                return ((PrintableString) element).getType();
+                return ((PrintableString) element).getProjectName();
             }
         });
 
@@ -67,7 +81,7 @@ public class ResultViewer extends ViewPart {
         col.setLabelProvider(new ColumnLabelProvider() {
             @Override
             public String getText(Object element) {
-                return ((PrintableString) element).getIdiom();
+                return ((PrintableString) element).getBlackList();
             }
         });
 
@@ -75,7 +89,7 @@ public class ResultViewer extends ViewPart {
         col.setLabelProvider(new ColumnLabelProvider() {
             @Override
             public String getText(Object element) {
-                return ((PrintableString) element).getFileName();
+                return ((PrintableString) element).getFile().toString();
             }
         });
 
@@ -83,43 +97,43 @@ public class ResultViewer extends ViewPart {
         col.setLabelProvider(new ColumnLabelProvider() {
             @Override
             public String getText(Object element) {
-                return ((PrintableString) element).getLineNum();
+                return ((PrintableString) element).getClassName();
+            }
+        });
+
+        col = createTableViewerColumn(titles[4], bounds[4]);
+        col.setLabelProvider(new ColumnLabelProvider() {
+            @Override
+            public String getText(Object element) {
+                return ((PrintableString) element).getLine();
             }
         });
 
         viewer.addDoubleClickListener(new IDoubleClickListener() {
             @Override
             public void doubleClick(DoubleClickEvent event) {
-                StructuredSelection selection = (StructuredSelection) viewer
-                        .getSelection();
-                PrintableString elem = (PrintableString) selection
-                        .getFirstElement();
-                IEditorRegistry editorRegistry = PlatformUI.getWorkbench()
-                        .getEditorRegistry();
+                StructuredSelection selection = (StructuredSelection) viewer.getSelection();
+                PrintableString elem = (PrintableString) selection.getFirstElement();
+                IEditorRegistry editorRegistry = PlatformUI.getWorkbench().getEditorRegistry();
+                
                 IFile file = elem.getFile();
-                if(file == null)
-                    return;
-                String editorId = editorRegistry.getDefaultEditor(
-                        file.getFullPath().toString()).getId();
-                IWorkbenchPage page = PlatformUI.getWorkbench()
-                        .getActiveWorkbenchWindow().getActivePage();
+                
+                String editorId = editorRegistry.getDefaultEditor(file.getFullPath().toString()).getId();
+                
+                IWorkbenchPage page = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
+                
                 try {
-                    AbstractTextEditor ePart = (AbstractTextEditor) page
-                            .openEditor(new FileEditorInput(file),
-                                    editorId);
-                    IDocument document = ePart.getDocumentProvider()
-                            .getDocument(ePart.getEditorInput());
+                    AbstractTextEditor ePart = (AbstractTextEditor) page.openEditor(new FileEditorInput(file), editorId);
+                    IDocument document = ePart.getDocumentProvider().getDocument(ePart.getEditorInput());
                     if (document != null) {
                         IRegion lineInfo = null;
                         try {
-                            lineInfo = document.getLineInformation(Integer
-                                    .valueOf(elem.getLineNum()) - 1);
+                            lineInfo = document.getLineInformation(Integer.valueOf(elem.getLine()) - 1);
                         } catch (BadLocationException e) {
                             // ignored
                         }
                         if (lineInfo != null) {
-                            ePart.selectAndReveal(lineInfo.getOffset(),
-                                    lineInfo.getLength());
+                            ePart.selectAndReveal(lineInfo.getOffset(), lineInfo.getLength());
                         }
                     }
                 } catch (PartInitException e) {
@@ -130,8 +144,7 @@ public class ResultViewer extends ViewPart {
     }
 
     private TableViewerColumn createTableViewerColumn(String title, int bound) {
-        final TableViewerColumn viewerColumn = new TableViewerColumn(viewer,
-                SWT.NONE);
+        final TableViewerColumn viewerColumn = new TableViewerColumn(viewer, SWT.NONE);
         final TableColumn column = viewerColumn.getColumn();
         column.setText(title);
         column.setWidth(bound);

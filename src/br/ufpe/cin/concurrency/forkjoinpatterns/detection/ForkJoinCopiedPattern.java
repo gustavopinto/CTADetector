@@ -155,14 +155,8 @@ public class ForkJoinCopiedPattern extends ASTVisitor implements Detector {
 								if(Bindings.equalDeclarations(currentField, ds)) {
 									System.out.println("DETECTED!!!");
 									System.out.println(method);
-									CompilationUnit unit = (CompilationUnit) method.getRoot();
-									Object[] className = PrintUtils.getClassNameAndLine(unit, method);
-									results.add(new PrintableString(
-                                            "while(list.isEmpty()) { ... list.remove... }",
-                                            (String) className[0],
-                                            (String) className[1],
-                                            (IFile) className[2],
-                                            false));
+									PrintableString metadata = PrintUtils.getMetadata(method);
+									results.add(metadata);
 								}
 							}
 						}

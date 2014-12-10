@@ -21,9 +21,11 @@ import org.eclipse.ltk.ui.refactoring.RefactoringWizardOpenOperation;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IActionDelegate;
 import org.eclipse.ui.IObjectActionDelegate;
+import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchPart;
+import org.eclipse.ui.PartInitException;
+import org.eclipse.ui.PlatformUI;
 
-import br.ufpe.cin.concurrency.forkjoinpatterns.detection.CollectVariableInfo;
 import br.ufpe.cin.concurrency.forkjoinpatterns.detection.ForkJoinCopiedPattern;
 import br.ufpe.cin.concurrency.forkjoinpatterns.util.PrintableString;
 import br.ufpe.cin.concurrency.forkjoinpatterns.view.ResultViewer;
@@ -59,26 +61,29 @@ public class DetectionForkJoinUsagesAction implements IObjectActionDelegate {
                 ICompilationUnit[] units = getCompilationUnitInPackages(packages);
                                 
                 List<PrintableString> detections = new ArrayList<PrintableString>();
-                for (int i = 0; i < units.length; i++) {
-                    CompilationUnit root = new RefactoringASTParser(AST.JLS3).parse(units[i], true);
+                for (ICompilationUnit unit: units) {
+                    CompilationUnit root = new RefactoringASTParser(AST.JLS3).parse(unit, true);
                     
                     ForkJoinCopiedPattern copied = new ForkJoinCopiedPattern();
                     root.accept(copied);
                     detections.addAll(copied.getResults());
                 }
                 
-                ResultViewer.viewer.setInput(detections);
-                ResultViewer.viewer.refresh();
+                IWorkbenchPage page = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
+                ResultViewer viewer = (ResultViewer) page.showView(ResultViewer.ID);
+
+                viewer.clearData();
+                viewer.setInput(detections);
                 
                 MessageDialog.openInformation(shell, "Detecting ForkJoin idioms",
                         "Detecting ForkJoin idioms finished.");
-            } catch (JavaModelException e) {
+            } catch (JavaModelException | PartInitException e) {
                 e.printStackTrace();
             }
         }
     }
 
-    public void run(RefactoringWizard wizard, Shell parent, String dialogTitle) {
+    private void run(RefactoringWizard wizard, Shell parent, String dialogTitle) {
         try {
             RefactoringWizardOpenOperation operation = new RefactoringWizardOpenOperation(
                     wizard);
@@ -98,9 +103,9 @@ public class DetectionForkJoinUsagesAction implements IObjectActionDelegate {
         }
     }
 
-    public IPackageFragment[] getPackageFragmentsInRoots(
+    private IPackageFragment[] getPackageFragmentsInRoots(
             IPackageFragmentRoot[] roots) throws JavaModelException {
-        ArrayList frags = new ArrayList();
+        List frags = new ArrayList();
         for (int i = 0; i < roots.length; i++) {
             if (roots[i].getKind() == IPackageFragmentRoot.K_SOURCE) {
                 IPackageFragmentRoot root = roots[i];
@@ -115,9 +120,9 @@ public class DetectionForkJoinUsagesAction implements IObjectActionDelegate {
         return fragments;
     }
 
-    public ICompilationUnit[] getCompilationUnitInPackages(
+    private ICompilationUnit[] getCompilationUnitInPackages(
             IPackageFragment[] packages) throws JavaModelException {
-        ArrayList frags = new ArrayList();
+        List frags = new ArrayList();
         for (int i = 0; i < packages.length; i++) {
             IPackageFragment p = packages[i];
             ICompilationUnit[] units = p.getCompilationUnits();

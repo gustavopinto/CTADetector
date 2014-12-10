@@ -85,35 +85,35 @@ public class PatternDetectionAction implements IObjectActionDelegate {
                             info, units[i], rewriter);
                     root.accept(semanticAnalyzer);
                     result = semanticAnalyzer.getResults();
-                    PrintUtils.printResult("ConcurrentHashMap Semantic Errors", result);
+//                    PrintUtils.printResult("ConcurrentHashMap Semantic Errors", result);
                     allResult.addAll(result);
 
                     AtomicViolationPatternForConcurrentHashMap avMapAnalyzer = new AtomicViolationPatternForConcurrentHashMap(
                             info, units[i], rewriter);
                     root.accept(avMapAnalyzer);
                     result = avMapAnalyzer.getResults();
-                    PrintUtils.printResult("ConcurrentHashMap Semantic Errors", result);
+//                    PrintUtils.printResult("ConcurrentHashMap Semantic Errors", result);
                     allResult.addAll(result);
                     
                     AtomicViolationPatternForQueue avQueueAnalyzer = new AtomicViolationPatternForQueue(
                             info, rewriter);
                     root.accept(avQueueAnalyzer);
                     result = avQueueAnalyzer.getResults();
-                    PrintUtils.printResult("Queue Atomicity Violations", result);
+//                    PrintUtils.printResult("Queue Atomicity Violations", result);
                     allResult.addAll(result);
 
                     AtomicityViolationPatternForCopyOnWrite avCopyOnWrite = new AtomicityViolationPatternForCopyOnWrite(
                             info);
                     root.accept(avCopyOnWrite);
                     result = avCopyOnWrite.getResults();
-                    PrintUtils.printResult("CopyOnWriteList/Set Semantics Errors", result);
+//                    PrintUtils.printResult("CopyOnWriteList/Set Semantics Errors", result);
                     allResult.addAll(result);
 
                     LazyInitializationPattern lazyInitial = new LazyInitializationPattern(
                             info);
                     root.accept(lazyInitial);
                     result = lazyInitial.getResults();
-                    PrintUtils.printResult("Lazy initialization Error", result);
+//                    PrintUtils.printResult("Lazy initialization Error", result);
                     allResult.addAll(result);
                     
                     if (isRewrite) {
@@ -125,8 +125,8 @@ public class PatternDetectionAction implements IObjectActionDelegate {
                     }
                 }
                 
-                ResultViewer.viewer.setInput(allResult);
-                ResultViewer.viewer.refresh();
+//                ResultViewer.viewer.setInput(allResult);
+//                ResultViewer.viewer.refresh();
                 
                 MessageDialog.openInformation(shell, "Buggy check-then-act idioms",
                         "Buggy idioms detection finished.");

@@ -86,18 +86,18 @@ public class CorrectDetectionAction implements IObjectActionDelegate {
                     CorrectDetectForMap correct = new CorrectDetectForMap(info, avMapAnalyzer.buggyLocations);
                     root.accept(correct);
                     results = correct.getResults();
-                    PrintUtils.printResult("Correct Usage", results);
+//                    PrintUtils.printResult("Correct Usage", results);
                     allResult.addAll(results);
                     
                     LazyInitializationPattern correctLI = new LazyInitializationPattern(info);
                     root.accept(correctLI);
                     results = correctLI.getCorrectResults();
-                    PrintUtils.printResult("Correct Usage", results);
+//                    PrintUtils.printResult("Correct Usage", results);
                     allResult.addAll(results);
                 }
                 
-                ResultViewer.viewer.setInput(allResult);
-                ResultViewer.viewer.refresh();
+//                ResultViewer.viewer.setInput(allResult);
+//                ResultViewer.viewer.refresh();
                 
                 MessageDialog.openInformation(shell, "Correct check-then-act idioms",
                         "Correct idioms detection finished.");
