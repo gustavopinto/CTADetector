@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<?eclipse version="3.4"?>
+<?eclipse version="3.4"?
 <plugin>
-   <extension point="org.eclipse.ui.views">
+<extension point="org.eclipse.ui.views">
         <category 
            id="concurrencypatterns.view.result"
            name="Idioms">
         </category>
         <view id="br.ufpe.cin.concurrency.forkjoinpatterns.view"
              name="Idiom Result"
-             category="concurrencypatterns.view.result"
+             category="br.ufpe.cin.concurrency.forkjoinpatterns.view"
              class="br.ufpe.cin.concurrency.forkjoinpatterns.view.ResultViewer"/>
    </extension>
 

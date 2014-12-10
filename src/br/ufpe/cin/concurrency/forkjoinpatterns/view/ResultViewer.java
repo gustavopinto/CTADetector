@@ -14,6 +14,7 @@ import org.eclipse.jface.viewers.TableViewerColumn;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.ui.IEditorRegistry;
@@ -49,7 +50,7 @@ public class ResultViewer extends ViewPart {
         gridData.horizontalAlignment = GridData.FILL;
         viewer.getControl().setLayoutData(gridData);
     }
-
+    
     private void createColumns(final Composite parent, final TableViewer viewer) {
         String[] titles = { "Type", "Idiom", "File", "Line" };
         int[] bounds = { 200, 250, 250, 40 };

@@ -25,13 +25,13 @@ import org.eclipse.ui.IWorkbenchPart;
 
 import br.ufpe.cin.concurrency.forkjoinpatterns.detection.CollectVariableInfo;
 import br.ufpe.cin.concurrency.forkjoinpatterns.detection.ForkJoinCopiedPattern;
-import br.ufpe.cin.concurrency.forkjoinpatterns.detection.LazyInitializationPattern;
 import br.ufpe.cin.concurrency.forkjoinpatterns.util.PrintableString;
+import br.ufpe.cin.concurrency.forkjoinpatterns.view.ResultViewer;
 
 public class DetectionForkJoinUsagesAction implements IObjectActionDelegate {
 
     private Shell shell;
-    private IJavaProject javaproject;
+    private IJavaProject project;
     public static boolean isRewrite;
 
     /**
@@ -52,45 +52,23 @@ public class DetectionForkJoinUsagesAction implements IObjectActionDelegate {
      * @see IActionDelegate#run(IAction)
      */
     public void run(IAction action) {
-        if (javaproject != null) {
+        if (project != null) {
             try {
-                IPackageFragmentRoot[] roots = javaproject
-                        .getAllPackageFragmentRoots();
+                IPackageFragmentRoot[] roots = project.getAllPackageFragmentRoots();
                 IPackageFragment[] packages = getPackageFragmentsInRoots(roots);
                 ICompilationUnit[] units = getCompilationUnitInPackages(packages);
                                 
-                List<PrintableString> allResult = new ArrayList<PrintableString>();
+                List<PrintableString> detections = new ArrayList<PrintableString>();
                 for (int i = 0; i < units.length; i++) {
                     CompilationUnit root = new RefactoringASTParser(AST.JLS3).parse(units[i], true);
                     
-                    CollectVariableInfo info = new CollectVariableInfo();
-                    root.accept(info);
-
-//                    SemanticPatternForConcurrentHashMap semanticAnalyzer = new SemanticPatternForConcurrentHashMap(info, units[i], null);
-//                    root.accept(semanticAnalyzer);
-//                    
-//                    AtomicViolationPatternForConcurrentHashMap avMapAnalyzer = new AtomicViolationPatternForConcurrentHashMap(info, units[i], null);
-//                    root.accept(avMapAnalyzer);
-                            
-//                    CorrectDetectForMap correct = new CorrectDetectForMap(info, avMapAnalyzer.buggyLocations);
-//                    root.accept(correct);
-//                    results = correct.getResults();
-//                    PrintUtils.printResult("Correct Usage", results);
-//                    allResult.addAll(results);
-                    
                     ForkJoinCopiedPattern copied = new ForkJoinCopiedPattern();
                     root.accept(copied);
-
-                    LazyInitializationPattern correctLI = new LazyInitializationPattern(info);
-                    root.accept(correctLI);
-                    
-//                    Set<PrintableString> results = correctLI.getCorrectResults();
-//                    PrintUtils.printResult("Correct Usage", results);
-//                    allResult.addAll(results);
+                    detections.addAll(copied.getResults());
                 }
                 
-//                ResultViewer.viewer.setInput(allResult);
-//                ResultViewer.viewer.refresh();
+                ResultViewer.viewer.setInput(detections);
+                ResultViewer.viewer.refresh();
                 
                 MessageDialog.openInformation(shell, "Detecting ForkJoin idioms",
                         "Detecting ForkJoin idioms finished.");
@@ -115,7 +93,7 @@ public class DetectionForkJoinUsagesAction implements IObjectActionDelegate {
      */
     public void selectionChanged(IAction action, ISelection selection) {
         if (selection instanceof ITreeSelection) {
-            this.javaproject = (IJavaProject) ((ITreeSelection) selection)
+            this.project = (IJavaProject) ((ITreeSelection) selection)
                     .getPaths()[0].getFirstSegment();
         }
     }
