@@ -2,7 +2,9 @@ package br.ufpe.cin.concurrency.fjdetector.refactors;
 
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.ASTNode;
+import org.eclipse.jdt.core.dom.Assignment;
 import org.eclipse.jdt.core.dom.Block;
+import org.eclipse.jdt.core.dom.FieldAccess;
 import org.eclipse.jdt.core.dom.FieldDeclaration;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
 import org.eclipse.jdt.core.dom.Modifier;
@@ -34,30 +36,47 @@ public class ForkJoinCopiedPatternRefactor implements Refactor {
 		listRewrite.insertFirst(from, null);
 		listRewrite.insertAfter(to, from, null);
 		
-		String className = ((TypeDeclaration) node).resolveBinding().getName();
-		MethodDeclaration constructor = createPrivateConstructor(ast, className);
-		listRewrite.insertAfter(constructor, to, null);
+		TypeDeclaration clazz = ((TypeDeclaration) node);
+		
+		for(MethodDeclaration method: clazz.getMethods()) {
+			if(method.isConstructor()) {
+				String className = clazz.resolveBinding().getName();
+				MethodDeclaration constructor = createPrivateConstructor(ast, className, method);
+				listRewrite.insertAfter(constructor, to, null);
+				break;
+			}
+		}
 	}
 
-	private MethodDeclaration createPrivateConstructor(AST ast, String className) {
-		
-		MethodDeclaration methodConstructor = ast.newMethodDeclaration();
-		methodConstructor.setConstructor(true);
+	private MethodDeclaration createPrivateConstructor(AST ast, String className, MethodDeclaration methodConstructor) {
+		//remove public modifier
+		methodConstructor.modifiers().remove(0);
 		methodConstructor.modifiers().add(ast.newModifier(Modifier.ModifierKeyword.PRIVATE_KEYWORD));
-		methodConstructor.setName(ast.newSimpleName(className));
-		// classType.bodyDeclarations().add(methodConstructor);
-
-		// constructor parameters
-		SingleVariableDeclaration variableDeclaration = createNewParam(ast, "from");
-		methodConstructor.parameters().add(variableDeclaration);
-
-		variableDeclaration = createNewParam(ast, "to");
-		methodConstructor.parameters().add(variableDeclaration);
+		System.out.println(methodConstructor.getBody());
 		
-		Block constructorBlock = ast.newBlock();
-		methodConstructor.setBody(constructorBlock);
+		// constructor parameters
+		SingleVariableDeclaration from = createNewParam(ast, "from");
+		methodConstructor.parameters().add(from);
+
+		SingleVariableDeclaration to = createNewParam(ast, "to");
+		methodConstructor.parameters().add(to);
+		
+		Block block = methodConstructor.getBody();
+		createNewAssignment(ast, block, "from");
+		createNewAssignment(ast, block, "to");
 		
 		return methodConstructor;
+	}
+
+	private void createNewAssignment(AST ast, Block block, String varName) {
+		Assignment a = ast.newAssignment();
+		a.setOperator(Assignment.Operator.ASSIGN);
+		block.statements().add(ast.newExpressionStatement(a));
+		FieldAccess fa = ast.newFieldAccess();
+		fa.setExpression(ast.newThisExpression());
+		fa.setName(ast.newSimpleName(varName));
+		a.setLeftHandSide(fa);
+		a.setRightHandSide(ast.newSimpleName(varName));
 	}
 
 	private SingleVariableDeclaration createNewParam(AST ast, String name) {

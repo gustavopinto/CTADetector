@@ -6,10 +6,10 @@
            id="concurrencypatterns.view.result"
            name="Idioms">
         </category>
-        <view id="br.ufpe.cin.concurrency.forkjoinpatterns.view.ResultViewer"
+        <view id="br.ufpe.cin.concurrency.fjdetector.view.ResultViewer"
              name="Idiom Result"
-             category="br.ufpe.cin.concurrency.forkjoinpatterns.view"
-             class="br.ufpe.cin.concurrency.forkjoinpatterns.view.ResultViewer"/>
+             category="br.ufpe.cin.concurrency.fjdetector.view"
+             class="br.ufpe.cin.concurrency.fjdetector.view.ResultViewer"/>
    </extension>
 
    <extension
@@ -41,7 +41,7 @@
          </action>-->
          <action
                label="Detect ForkJoin Misuses"
-               class="br.ufpe.cin.concurrency.forkjoinpatterns.actions.ForkJoinMisusesAction"
+               class="br.ufpe.cin.concurrency.fjdetector.actions.ForkJoinMisusesAction"
                menubarPath="concurrencypatterns.menu1/group1"
                enablesFor="1"
                id="concurrencypatterns.ForkJoinUsagesAction">

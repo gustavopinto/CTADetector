@@ -29,7 +29,7 @@ import org.eclipse.ui.texteditor.AbstractTextEditor;
 import br.ufpe.cin.concurrency.fjdetector.util.Result;
 
 public class ResultViewer extends ViewPart {
-	public static final String ID = "br.ufpe.cin.concurrency.forkjoinpatterns.view.ResultViewer";
+	public static final String ID = "br.ufpe.cin.concurrency.fjdetector.view.ResultViewer";
 	 
     private TableViewer viewer;
     
