@@ -19,7 +19,7 @@ import br.ufpe.cin.concurrency.fjdetector.Refactor;
 
 public class ForkJoinCopiedPatternRefactor implements Refactor {
 
-	private ASTRewrite rewriter;
+	private final ASTRewrite rewriter;
 
 	public ForkJoinCopiedPatternRefactor(ASTRewrite rewriter) {
 		this.rewriter = rewriter;
@@ -29,14 +29,18 @@ public class ForkJoinCopiedPatternRefactor implements Refactor {
 	public void refactor(ASTNode node) {
 		AST ast = node.getAST();
 
+		TypeDeclaration clazz = ((TypeDeclaration) node);
+		
+		int total = clazz.getFields().length -1 ;
+		FieldDeclaration lastField = clazz.getFields()[total];
+		
 		FieldDeclaration from = createNewField(ast, "from");
 		FieldDeclaration to = createNewField(ast, "to");
 		
 		ListRewrite listRewrite = rewriter.getListRewrite(node, TypeDeclaration.BODY_DECLARATIONS_PROPERTY);
-		listRewrite.insertFirst(from, null);
+		listRewrite.insertAfter(from, lastField, null);
 		listRewrite.insertAfter(to, from, null);
 		
-		TypeDeclaration clazz = ((TypeDeclaration) node);
 		
 		for(MethodDeclaration method: clazz.getMethods()) {
 			if(method.isConstructor()) {

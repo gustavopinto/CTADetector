@@ -6,7 +6,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
-import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.ASTVisitor;
 import org.eclipse.jdt.core.dom.Assignment;
@@ -31,8 +30,6 @@ import org.eclipse.jdt.core.dom.rewrite.ASTRewrite;
 import org.eclipse.jdt.internal.corext.dom.Bindings;
 
 import br.ufpe.cin.concurrency.fjdetector.Detector;
-import br.ufpe.cin.concurrency.fjdetector.actions.ForkJoinMisusesAction;
-import br.ufpe.cin.concurrency.fjdetector.actions.PatternDetectionAction;
 import br.ufpe.cin.concurrency.fjdetector.refactors.ForkJoinCopiedPatternRefactor;
 import br.ufpe.cin.concurrency.fjdetector.util.BlackList;
 import br.ufpe.cin.concurrency.fjdetector.util.Result;
