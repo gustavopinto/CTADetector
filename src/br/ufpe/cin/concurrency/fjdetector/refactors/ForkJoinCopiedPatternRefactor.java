@@ -27,52 +27,50 @@ public class ForkJoinCopiedPatternRefactor implements Refactor {
 
 	@Override
 	public void refactor(ASTNode node) {
-		AST ast = node.getAST();
-
 		TypeDeclaration clazz = ((TypeDeclaration) node);
 		
-		int total = clazz.getFields().length -1 ;
-		FieldDeclaration lastField = clazz.getFields()[total];
+		FieldDeclaration lastField = getLastFieldDeclared(clazz);
 		
-		FieldDeclaration from = createNewField(ast, "from");
-		FieldDeclaration to = createNewField(ast, "to");
+		FieldDeclaration from = createNewField(node, "from");
+		FieldDeclaration to = createNewField(node, "to");
 		
 		ListRewrite listRewrite = rewriter.getListRewrite(node, TypeDeclaration.BODY_DECLARATIONS_PROPERTY);
 		listRewrite.insertAfter(from, lastField, null);
 		listRewrite.insertAfter(to, from, null);
 		
-		
+		MethodDeclaration constructor = createPrivateConstructor(node);
+		listRewrite.insertAfter(constructor, to, null);
+	}
+
+	private MethodDeclaration createPrivateConstructor(ASTNode node) {
+		AST ast = node.getAST();
+		TypeDeclaration clazz = ((TypeDeclaration) node);
 		for(MethodDeclaration method: clazz.getMethods()) {
 			if(method.isConstructor()) {
-				String className = clazz.resolveBinding().getName();
-				MethodDeclaration constructor = createPrivateConstructor(ast, className, method);
-				listRewrite.insertAfter(constructor, to, null);
-				break;
+		
+				// remove public modifier
+				method.modifiers().remove(0);
+				method.modifiers().add(ast.newModifier(Modifier.ModifierKeyword.PRIVATE_KEYWORD));
+
+				// constructor parameters
+				SingleVariableDeclaration from = createNewParam(node, "from");
+				method.parameters().add(from);
+
+				SingleVariableDeclaration to = createNewParam(node, "to");
+				method.parameters().add(to);
+
+				Block block = method.getBody();
+				createNewAssignment(node, block, "from");
+				createNewAssignment(node, block, "to");
+
+				return method;
 			}
 		}
+		throw new UnsupportedOperationException(String.format("Class %s does not have a constructor definer!", clazz));
 	}
 
-	private MethodDeclaration createPrivateConstructor(AST ast, String className, MethodDeclaration methodConstructor) {
-		//remove public modifier
-		methodConstructor.modifiers().remove(0);
-		methodConstructor.modifiers().add(ast.newModifier(Modifier.ModifierKeyword.PRIVATE_KEYWORD));
-		System.out.println(methodConstructor.getBody());
-		
-		// constructor parameters
-		SingleVariableDeclaration from = createNewParam(ast, "from");
-		methodConstructor.parameters().add(from);
-
-		SingleVariableDeclaration to = createNewParam(ast, "to");
-		methodConstructor.parameters().add(to);
-		
-		Block block = methodConstructor.getBody();
-		createNewAssignment(ast, block, "from");
-		createNewAssignment(ast, block, "to");
-		
-		return methodConstructor;
-	}
-
-	private void createNewAssignment(AST ast, Block block, String varName) {
+	private void createNewAssignment(ASTNode node, Block block, String varName) {
+		AST ast = node.getAST();
 		Assignment a = ast.newAssignment();
 		a.setOperator(Assignment.Operator.ASSIGN);
 		block.statements().add(ast.newExpressionStatement(a));
@@ -83,19 +81,26 @@ public class ForkJoinCopiedPatternRefactor implements Refactor {
 		a.setRightHandSide(ast.newSimpleName(varName));
 	}
 
-	private SingleVariableDeclaration createNewParam(AST ast, String name) {
+	private SingleVariableDeclaration createNewParam(ASTNode node, String name) {
+		AST ast = node.getAST();
 		SingleVariableDeclaration newParam = ast.newSingleVariableDeclaration();
 		newParam.setType(ast.newPrimitiveType(PrimitiveType.INT));
 		newParam.setName(ast.newSimpleName(name));
 		return newParam;
 	}
 
-	private FieldDeclaration createNewField(AST ast, String name) {
+	private FieldDeclaration createNewField(ASTNode node, String name) {
+		AST ast = node.getAST();
 		VariableDeclarationFragment frag = ast.newVariableDeclarationFragment();
 		frag.setName(ast.newSimpleName(name));
 		FieldDeclaration newFieldDecl = ast.newFieldDeclaration(frag);
 		newFieldDecl.modifiers().add(ast.newModifier(Modifier.ModifierKeyword.PRIVATE_KEYWORD));
 		newFieldDecl.setType(ast.newPrimitiveType(PrimitiveType.INT));
 		return newFieldDecl;
+	}
+	
+	private FieldDeclaration getLastFieldDeclared(TypeDeclaration clazz) {
+		int total = clazz.getFields().length - 1;
+		return clazz.getFields()[total];
 	}
 }
