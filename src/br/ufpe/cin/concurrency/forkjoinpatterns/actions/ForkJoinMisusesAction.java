@@ -30,7 +30,7 @@ import org.eclipse.ui.PlatformUI;
 import br.ufpe.cin.concurrency.forkjoinpatterns.detectors.ForkJoinCopiedPatternDetector;
 import br.ufpe.cin.concurrency.forkjoinpatterns.fix.ForkJoinMisuseFix;
 import br.ufpe.cin.concurrency.forkjoinpatterns.fix.ForkJoinMisuseFixWizard;
-import br.ufpe.cin.concurrency.forkjoinpatterns.util.PrintableString;
+import br.ufpe.cin.concurrency.forkjoinpatterns.util.Result;
 import br.ufpe.cin.concurrency.forkjoinpatterns.view.ResultViewer;
 
 public class ForkJoinMisusesAction implements IObjectActionDelegate {
@@ -50,7 +50,7 @@ public class ForkJoinMisusesAction implements IObjectActionDelegate {
      */
     @Override
     public void setActivePart(IAction action, IWorkbenchPart targetPart) {
-        shell = targetPart.getSite().getShell();
+        this.shell = targetPart.getSite().getShell();
     }
 
     /**
@@ -64,7 +64,7 @@ public class ForkJoinMisusesAction implements IObjectActionDelegate {
                 IPackageFragment[] packages = getPackageFragmentsInRoots(roots);
                 ICompilationUnit[] units = getCompilationUnitInPackages(packages);
                                 
-                List<PrintableString> detections = new ArrayList<PrintableString>();
+                List<Result> detections = new ArrayList<Result>();
                 for (ICompilationUnit unit: units) {
                     CompilationUnit root = new RefactoringASTParser(AST.JLS3).parse(unit, true);
 
@@ -73,9 +73,6 @@ public class ForkJoinMisusesAction implements IObjectActionDelegate {
                     ForkJoinCopiedPatternDetector copied = new ForkJoinCopiedPatternDetector(rewriter);
                     root.accept(copied);
                     detections.addAll(copied.getResults());
-                    
-//                    ConcurrentCollectionFix fix = new ConcurrentCollectionFix(unit, rewriter);
-//                    run(new ConcurrentCollectionFixWizard(fix, "Concurrent Collection Fix"), shell, "Concurrent Collection Fix");
                     
                     if (copied.isRefactoringAvailable()) {
                     	ForkJoinMisuseFix fix = new ForkJoinMisuseFix(unit, rewriter);

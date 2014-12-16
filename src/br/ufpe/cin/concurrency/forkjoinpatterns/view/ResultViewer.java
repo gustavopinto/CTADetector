@@ -26,7 +26,7 @@ import org.eclipse.ui.part.FileEditorInput;
 import org.eclipse.ui.part.ViewPart;
 import org.eclipse.ui.texteditor.AbstractTextEditor;
 
-import br.ufpe.cin.concurrency.forkjoinpatterns.util.PrintableString;
+import br.ufpe.cin.concurrency.forkjoinpatterns.util.Result;
 
 public class ResultViewer extends ViewPart {
 	public static final String ID = "br.ufpe.cin.concurrency.forkjoinpatterns.view.ResultViewer";
@@ -59,7 +59,7 @@ public class ResultViewer extends ViewPart {
 	    viewer.refresh();
     }
     
-    public void setInput(List<PrintableString> detections) {
+    public void setInput(List<Result> detections) {
 		viewer.getTable().clearAll();
 		viewer.refresh();
 		viewer.setInput(detections);
@@ -73,7 +73,7 @@ public class ResultViewer extends ViewPart {
         col.setLabelProvider(new ColumnLabelProvider() {
             @Override
             public String getText(Object element) {
-                return ((PrintableString) element).getProjectName();
+                return ((Result) element).getProjectName();
             }
         });
 
@@ -81,7 +81,7 @@ public class ResultViewer extends ViewPart {
         col.setLabelProvider(new ColumnLabelProvider() {
             @Override
             public String getText(Object element) {
-                return ((PrintableString) element).getBlackList();
+                return ((Result) element).getBlackList();
             }
         });
 
@@ -89,7 +89,7 @@ public class ResultViewer extends ViewPart {
         col.setLabelProvider(new ColumnLabelProvider() {
             @Override
             public String getText(Object element) {
-                return ((PrintableString) element).getFile().toString();
+                return ((Result) element).getFile().toString();
             }
         });
 
@@ -97,7 +97,7 @@ public class ResultViewer extends ViewPart {
         col.setLabelProvider(new ColumnLabelProvider() {
             @Override
             public String getText(Object element) {
-                return ((PrintableString) element).getClassName();
+                return ((Result) element).getClassName();
             }
         });
 
@@ -105,7 +105,7 @@ public class ResultViewer extends ViewPart {
         col.setLabelProvider(new ColumnLabelProvider() {
             @Override
             public String getText(Object element) {
-                return ((PrintableString) element).getLine();
+                return ((Result) element).getLine();
             }
         });
 
@@ -113,7 +113,7 @@ public class ResultViewer extends ViewPart {
             @Override
             public void doubleClick(DoubleClickEvent event) {
                 StructuredSelection selection = (StructuredSelection) viewer.getSelection();
-                PrintableString elem = (PrintableString) selection.getFirstElement();
+                Result elem = (Result) selection.getFirstElement();
                 IEditorRegistry editorRegistry = PlatformUI.getWorkbench().getEditorRegistry();
                 
                 IFile file = elem.getFile();

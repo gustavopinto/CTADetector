@@ -28,13 +28,13 @@ import org.eclipse.jdt.internal.corext.dom.ASTNodes;
 import org.eclipse.jdt.internal.corext.dom.Bindings;
 
 import br.ufpe.cin.concurrency.forkjoinpatterns.util.BindingUtils;
-import br.ufpe.cin.concurrency.forkjoinpatterns.util.PrintUtils;
-import br.ufpe.cin.concurrency.forkjoinpatterns.util.PrintableString;
+import br.ufpe.cin.concurrency.forkjoinpatterns.util.Results;
+import br.ufpe.cin.concurrency.forkjoinpatterns.util.Result;
 
 public class LazyInitializationPattern extends ASTVisitor {
     private IBinding fFieldBinding;
-    Set<PrintableString> results = new HashSet<PrintableString>();
-    Set<PrintableString> correctResults = new HashSet<PrintableString>();
+    Set<Result> results = new HashSet<Result>();
+    Set<Result> correctResults = new HashSet<Result>();
     CollectVariableInfo info;
 
     public LazyInitializationPattern(CollectVariableInfo in) {
@@ -118,15 +118,15 @@ public class LazyInitializationPattern extends ASTVisitor {
                         typeName.indexOf('<')) : typeName;
                 if (BindingUtils.allType.contains(typeName)) {
                     CompilationUnit unit = (CompilationUnit) assign.getRoot();
-                    Object[] className = PrintUtils.getClassNameAndLine(unit,
+                    Object[] className = Results.getClassNameAndLine(unit,
                             assign);
                     if (!BindingUtils.hasSynchronized(assign)) {
-                        results.add(new PrintableString(
+                        results.add(new Result(
                                 "if(v == null) { v = new C(); } ",
                                 (String) className[0], (String) className[1],
                                 (IFile) className[2], false));
                     } else {
-                        correctResults.add(new PrintableString(
+                        correctResults.add(new Result(
                                 "Lazy Initialization", (String) className[0],
                                 (String) className[1], (IFile) className[2],
                                 false));
@@ -136,11 +136,11 @@ public class LazyInitializationPattern extends ASTVisitor {
         }
     }
 
-    public Set<PrintableString> getResults() {
+    public Set<Result> getResults() {
         return results;
     }
 
-    public Set<PrintableString> getCorrectResults() {
+    public Set<Result> getCorrectResults() {
         return correctResults;
     }
 

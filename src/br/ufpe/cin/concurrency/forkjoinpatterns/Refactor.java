@@ -1,4 +1,4 @@
-package br.ufpe.cin.concurrency.forkjoinpatterns.refactors;
+package br.ufpe.cin.concurrency.forkjoinpatterns;
 
 import org.eclipse.jdt.core.dom.ASTNode;
 

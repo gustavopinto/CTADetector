@@ -35,8 +35,8 @@ import br.ufpe.cin.concurrency.forkjoinpatterns.detectors.LazyInitializationPatt
 import br.ufpe.cin.concurrency.forkjoinpatterns.detectors.SemanticPatternForConcurrentHashMap;
 import br.ufpe.cin.concurrency.forkjoinpatterns.fix.ConcurrentCollectionFix;
 import br.ufpe.cin.concurrency.forkjoinpatterns.fix.ConcurrentCollectionFixWizard;
-import br.ufpe.cin.concurrency.forkjoinpatterns.util.PrintUtils;
-import br.ufpe.cin.concurrency.forkjoinpatterns.util.PrintableString;
+import br.ufpe.cin.concurrency.forkjoinpatterns.util.Results;
+import br.ufpe.cin.concurrency.forkjoinpatterns.util.Result;
 import br.ufpe.cin.concurrency.forkjoinpatterns.view.ResultViewer;
 
 public class PatternDetectionAction implements IObjectActionDelegate {
@@ -70,9 +70,9 @@ public class PatternDetectionAction implements IObjectActionDelegate {
                 IPackageFragment[] packages = getPackageFragmentsInRoots(roots);
                 ICompilationUnit[] units = getCompilationUnitInPackages(packages);
                 
-                ArrayList<PrintableString> allResult = new ArrayList<PrintableString>();
+                ArrayList<Result> allResult = new ArrayList<Result>();
                 for (int i = 0; i < units.length; i++) {
-                    Set<PrintableString> result;
+                    Set<Result> result;
                     CompilationUnit root = new RefactoringASTParser(AST.JLS3)
                             .parse(units[i], true);
                     ASTRewrite rewriter = ASTRewrite.create(root.getAST());

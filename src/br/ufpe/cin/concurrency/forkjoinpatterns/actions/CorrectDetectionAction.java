@@ -31,8 +31,8 @@ import br.ufpe.cin.concurrency.forkjoinpatterns.detectors.CollectVariableInfo;
 import br.ufpe.cin.concurrency.forkjoinpatterns.detectors.CorrectDetectForMap;
 import br.ufpe.cin.concurrency.forkjoinpatterns.detectors.LazyInitializationPattern;
 import br.ufpe.cin.concurrency.forkjoinpatterns.detectors.SemanticPatternForConcurrentHashMap;
-import br.ufpe.cin.concurrency.forkjoinpatterns.util.PrintUtils;
-import br.ufpe.cin.concurrency.forkjoinpatterns.util.PrintableString;
+import br.ufpe.cin.concurrency.forkjoinpatterns.util.Results;
+import br.ufpe.cin.concurrency.forkjoinpatterns.util.Result;
 import br.ufpe.cin.concurrency.forkjoinpatterns.view.ResultViewer;
 
 public class CorrectDetectionAction implements IObjectActionDelegate {
@@ -66,9 +66,9 @@ public class CorrectDetectionAction implements IObjectActionDelegate {
                 IPackageFragment[] packages = getPackageFragmentsInRoots(roots);
                 ICompilationUnit[] units = getCompilationUnitInPackages(packages);
                                 
-                ArrayList<PrintableString> allResult = new ArrayList<PrintableString>();
+                ArrayList<Result> allResult = new ArrayList<Result>();
                 for (int i = 0; i < units.length; i++) {
-                    Set<PrintableString> results;
+                    Set<Result> results;
                     CompilationUnit root = new RefactoringASTParser(AST.JLS3)
                             .parse(units[i], true);
                     

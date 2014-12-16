@@ -33,13 +33,13 @@ import org.eclipse.jdt.internal.corext.dom.ASTNodes;
 
 import br.ufpe.cin.concurrency.forkjoinpatterns.actions.PatternDetectionAction;
 import br.ufpe.cin.concurrency.forkjoinpatterns.util.BindingUtils;
-import br.ufpe.cin.concurrency.forkjoinpatterns.util.PrintUtils;
-import br.ufpe.cin.concurrency.forkjoinpatterns.util.PrintableString;
+import br.ufpe.cin.concurrency.forkjoinpatterns.util.Results;
+import br.ufpe.cin.concurrency.forkjoinpatterns.util.Result;
 import br.ufpe.cin.concurrency.forkjoinpatterns.util.RefactoringUtil;
 
 public class AtomicViolationPatternForConcurrentHashMap extends
         SemanticPatternForConcurrentHashMap {
-    private Set<PrintableString> avResults = new HashSet<PrintableString>();
+    private Set<Result> avResults = new HashSet<Result>();
 
     final static protected int PUTIFABSENT_FIX = 3;
     final static protected int GET_FIX = 4;
@@ -118,9 +118,9 @@ public class AtomicViolationPatternForConcurrentHashMap extends
                             && BindingUtils.checkArgument(invoc, hashMapKey)) {
                         CompilationUnit unit = (CompilationUnit) invoc
                                 .getRoot();
-                        Object[] className = PrintUtils.getClassNameAndLine(
+                        Object[] className = Results.getClassNameAndLine(
                                 unit, invoc);
-                        avResults.add(new PrintableString(
+                        avResults.add(new Result(
                                 "putIfAbsent(k, v); ...; return get(k) ",
                                 (String) className[0], (String) className[1],
                                 (IFile) className[2], BindingUtils
@@ -188,7 +188,7 @@ public class AtomicViolationPatternForConcurrentHashMap extends
             if (!avFlag && invocationOfPut instanceof MethodInvocation) {
                 CompilationUnit unit = (CompilationUnit) invocationOfPut
                         .getRoot();
-                Object[] className = PrintUtils.getClassNameAndLine(unit,
+                Object[] className = Results.getClassNameAndLine(unit,
                         invocationOfPut);
                 boolean hasSync = BindingUtils.hasSynchronized(invocationOfPut);
                 if (checkMethodNameAndBinding(
@@ -240,7 +240,7 @@ public class AtomicViolationPatternForConcurrentHashMap extends
                                                 (MethodInvocation) re,
                                                 hashMapKey)) {
                                     avResults
-                                            .add(new PrintableString(
+                                            .add(new Result(
                                                     "if(method() or variable){putIfAbsent(k, v); ...} return get(k) ",
                                                     (String) className[0],
                                                     (String) className[1],
@@ -257,7 +257,7 @@ public class AtomicViolationPatternForConcurrentHashMap extends
                                                 ((MethodInvocation) re)
                                                         .getExpression())) {
                                     avResults
-                                            .add(new PrintableString(
+                                            .add(new Result(
                                                     "if(method() or variable){putIfAbsent(k, v); ...} return v.m() ",
                                                     (String) className[0],
                                                     (String) className[1],
@@ -273,7 +273,7 @@ public class AtomicViolationPatternForConcurrentHashMap extends
                             } else if (BindingUtils.compareArguments(
                                     (Expression) arg2, re)) {
                                 avResults
-                                        .add(new PrintableString(
+                                        .add(new Result(
                                                 "if(method() or variable){v = ...; putIfAbsent(k, v); ...} return v; ",
                                                 (String) className[0],
                                                 (String) className[1],
@@ -292,7 +292,7 @@ public class AtomicViolationPatternForConcurrentHashMap extends
                                         && BindingUtils.checkArgument(invoc,
                                                 hashMapKey)) {
                                     avResults
-                                            .add(new PrintableString(
+                                            .add(new Result(
                                                     "if(method() or variable){v = ...; putIfAbsent(k, v); ...} get(k); ",
                                                     (String) className[0],
                                                     (String) className[1],
@@ -314,7 +314,7 @@ public class AtomicViolationPatternForConcurrentHashMap extends
                                             && BindingUtils.compareArguments(e,
                                                     (Expression) arg2)) {
                                         avResults
-                                                .add(new PrintableString(
+                                                .add(new Result(
                                                         "if(method() or variable){v = ...; putIfAbsent(k, v); ...} v.m(); ",
                                                         (String) className[0],
                                                         (String) className[1],
@@ -446,9 +446,9 @@ public class AtomicViolationPatternForConcurrentHashMap extends
             for (MethodInvocation invoc : methodInvocs) {
                 if (checkMethodNameAndBinding(invoc, "get")
                         && BindingUtils.checkArgument(invoc, hashMapKey)) {
-                    Object[] className = PrintUtils.getClassNameAndLine(unit,
+                    Object[] className = Results.getClassNameAndLine(unit,
                             invoc);
-                    avResults.add(new PrintableString(
+                    avResults.add(new Result(
                             "if(containsKey(k)){ get(k); ...} ",
                             (String) className[0], (String) className[1],
                             (IFile) className[2], BindingUtils
@@ -460,7 +460,7 @@ public class AtomicViolationPatternForConcurrentHashMap extends
         }
     }
 
-    public Set<PrintableString> getResults() {
+    public Set<Result> getResults() {
         return avResults;
     }
 

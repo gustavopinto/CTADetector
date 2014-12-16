@@ -6,9 +6,9 @@ import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.eclipse.jdt.core.dom.MethodInvocation;
 
-public class PrintUtils {
+public class Results {
 	
-	public static PrintableString getMetadata(MethodInvocation node) {
+	public static Result getMetadata(MethodInvocation node) {
 		CompilationUnit unit = (CompilationUnit) node.getRoot();
 		
 		String javaProject = unit.getJavaElement().getJavaProject().getProject().getName();
@@ -24,7 +24,7 @@ public class PrintUtils {
 
 		String blackList = String.format("%s.%s", node.getExpression(), node.getName());
 		
-		return new PrintableString(javaProject, className, blackList, line, file);
+		return new Result(javaProject, className, blackList, line, file);
 	}
 	
 	@Deprecated

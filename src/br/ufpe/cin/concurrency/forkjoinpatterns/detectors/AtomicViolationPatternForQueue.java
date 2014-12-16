@@ -41,15 +41,15 @@ import org.eclipse.ui.console.MessageConsoleStream;
 
 import br.ufpe.cin.concurrency.forkjoinpatterns.actions.PatternDetectionAction;
 import br.ufpe.cin.concurrency.forkjoinpatterns.util.BindingUtils;
-import br.ufpe.cin.concurrency.forkjoinpatterns.util.PrintUtils;
-import br.ufpe.cin.concurrency.forkjoinpatterns.util.PrintableString;
+import br.ufpe.cin.concurrency.forkjoinpatterns.util.Results;
+import br.ufpe.cin.concurrency.forkjoinpatterns.util.Result;
 import br.ufpe.cin.concurrency.forkjoinpatterns.util.RefactoringUtil;
 
 public class AtomicViolationPatternForQueue extends ASTVisitor {
     protected CollectVariableInfo info;
     private IBinding fFieldBinding;
     private Set<String> methodName = new HashSet<String>();
-    Set<PrintableString> results = new HashSet<PrintableString>();
+    Set<Result> results = new HashSet<Result>();
 
     private ASTRewrite rewriter;
 
@@ -373,20 +373,20 @@ public class AtomicViolationPatternForQueue extends ASTVisitor {
 
         for (MethodInvocation invocationOfPoll : invoc) {
             CompilationUnit unit = (CompilationUnit) invocationOfPoll.getRoot();
-            Object[] className = PrintUtils.getClassNameAndLine(unit,
+            Object[] className = Results.getClassNameAndLine(unit,
                     invocationOfPoll);
             boolean hasSync = BindingUtils.hasSynchronized(invocationOfPoll);
             if (checkMethodNameAndBinding(invocationOfPoll)) {
                 String mName = invocationOfPoll.getName().getIdentifier();
                 if (isVConditional) {
-                    results.add(new PrintableString(
+                    results.add(new Result(
                             "boolean = !isEmpty()/int = size(); if/while(boolean/int > 0) { ..."
                                     + mName + ";... } ", (String) className[0],
                             (String) className[1], (IFile) className[2],
                             hasSync));
                     invokeRefactoring(ISEMPTY_FIX, invocationOfPoll);
                 } else {
-                    results.add(new PrintableString(
+                    results.add(new Result(
                             "if/while(size()>0 or !isEmpty()) { ..." + mName
                                     + ";... } ", (String) className[0],
                             (String) className[1], (IFile) className[2],
@@ -422,7 +422,7 @@ public class AtomicViolationPatternForQueue extends ASTVisitor {
                         .getIdentifier());
     }
 
-    public Set<PrintableString> getResults() {
+    public Set<Result> getResults() {
         return results;
     }
 

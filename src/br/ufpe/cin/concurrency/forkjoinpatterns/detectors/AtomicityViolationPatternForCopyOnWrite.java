@@ -28,13 +28,13 @@ import org.eclipse.jdt.core.dom.WhileStatement;
 import org.eclipse.jdt.internal.corext.dom.ASTNodes;
 
 import br.ufpe.cin.concurrency.forkjoinpatterns.util.BindingUtils;
-import br.ufpe.cin.concurrency.forkjoinpatterns.util.PrintUtils;
-import br.ufpe.cin.concurrency.forkjoinpatterns.util.PrintableString;
+import br.ufpe.cin.concurrency.forkjoinpatterns.util.Results;
+import br.ufpe.cin.concurrency.forkjoinpatterns.util.Result;
 import br.ufpe.cin.concurrency.forkjoinpatterns.util.StatementVisitor;
 
 public class AtomicityViolationPatternForCopyOnWrite extends ASTVisitor {
     protected CollectVariableInfo info;
-    private Set<PrintableString> results = new HashSet<PrintableString>();
+    private Set<Result> results = new HashSet<Result>();
     private IBinding fFieldBinding;
 
     public AtomicityViolationPatternForCopyOnWrite(CollectVariableInfo visitor) {
@@ -83,11 +83,11 @@ public class AtomicityViolationPatternForCopyOnWrite extends ASTVisitor {
                             if (invocation instanceof MethodInvocation) {
                                 CompilationUnit unit = (CompilationUnit) invocation
                                         .getRoot();
-                                Object[] className = PrintUtils
+                                Object[] className = Results
                                         .getClassNameAndLine(unit, invocation);
                                 if (checkMethodNameAndBinding(
                                         (MethodInvocation) invocation, "remove")) {
-                                    results.add(new PrintableString(
+                                    results.add(new Result(
                                             "while(list.isEmpty()) { ... list.remove... }",
                                             (String) className[0],
                                             (String) className[1],
@@ -248,7 +248,7 @@ public class AtomicityViolationPatternForCopyOnWrite extends ASTVisitor {
 
                         CompilationUnit unit = (CompilationUnit) invocation
                                 .getRoot();
-                        Object[] className = PrintUtils.getClassNameAndLine(
+                        Object[] className = Results.getClassNameAndLine(
                                 unit, invocation);
                         if (checkMethodNameAndBinding(
                                 (MethodInvocation) invocation, "remove")
@@ -257,7 +257,7 @@ public class AtomicityViolationPatternForCopyOnWrite extends ASTVisitor {
                                         "removeAll")
                                 || checkMethodNameAndBinding(
                                         (MethodInvocation) invocation, "get")) {
-                            results.add(new PrintableString(
+                            results.add(new Result(
                                     "if(list.isEmpty()) { ... return; } list.remove/get/removeAll;",
                                     (String) className[0],
                                     (String) className[1],
@@ -351,7 +351,7 @@ public class AtomicityViolationPatternForCopyOnWrite extends ASTVisitor {
 
             if (invocation instanceof MethodInvocation) {
                 CompilationUnit unit = (CompilationUnit) invocation.getRoot();
-                Object[] className = PrintUtils.getClassNameAndLine(unit,
+                Object[] className = Results.getClassNameAndLine(unit,
                         invocation);
                 boolean hasSync = BindingUtils.hasSynchronized(invocation);
                 if (checkMethodNameAndBinding((MethodInvocation) invocation,
@@ -362,7 +362,7 @@ public class AtomicityViolationPatternForCopyOnWrite extends ASTVisitor {
                         // boolean = contains(); if(!boolean) { ...
                         // add(); ... }
                         // -> addIfAbsent();
-                        results.add(new PrintableString(
+                        results.add(new Result(
                                 "boolean = contains(e); if(!boolean or !method()) { ...add(e);... }",
                                 (String) className[0], (String) className[1],
                                 (IFile) className[2], hasSync));
@@ -375,7 +375,7 @@ public class AtomicityViolationPatternForCopyOnWrite extends ASTVisitor {
                         // boolean = containsKey(); if(boolean) { ...
                         // remove(); ... } ->
                         // remove();
-                        results.add(new PrintableString(
+                        results.add(new Result(
                                 "boolean = contains(e); if(boolean) { ... remove(e); ... } ",
                                 (String) className[0], (String) className[1],
                                 (IFile) className[2], hasSync));
@@ -412,7 +412,7 @@ public class AtomicityViolationPatternForCopyOnWrite extends ASTVisitor {
         return false;
     }
 
-    public Set<PrintableString> getResults() {
+    public Set<Result> getResults() {
         return results;
     }
 }

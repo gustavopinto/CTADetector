@@ -27,12 +27,12 @@ import org.eclipse.ui.console.MessageConsoleStream;
 import br.ufpe.cin.concurrency.forkjoinpatterns.actions.CorrectDetectionAction;
 import br.ufpe.cin.concurrency.forkjoinpatterns.actions.PatternDetectionAction;
 import br.ufpe.cin.concurrency.forkjoinpatterns.util.BindingUtils;
-import br.ufpe.cin.concurrency.forkjoinpatterns.util.PrintUtils;
-import br.ufpe.cin.concurrency.forkjoinpatterns.util.PrintableString;
+import br.ufpe.cin.concurrency.forkjoinpatterns.util.Results;
+import br.ufpe.cin.concurrency.forkjoinpatterns.util.Result;
 
 public class CorrectDetectForMap extends ASTVisitor {
     private CollectVariableInfo info;
-    private Set<PrintableString> result = new HashSet<PrintableString>();
+    private Set<Result> result = new HashSet<Result>();
     private Set<String> incorrectSet;
 
     public CorrectDetectForMap(CollectVariableInfo i, Set<String> iSet) {
@@ -49,7 +49,7 @@ public class CorrectDetectForMap extends ASTVisitor {
             String name = invoc.getName().getIdentifier();
             if (name.equals("putIfAbsent")) {
                 if (!incorrectSet.contains(location))
-                    result.add(new PrintableString("putIfAbsent",
+                    result.add(new Result("putIfAbsent",
                             (String) className[0], (String) className[1],
                             (IFile) className[2], false));
             } else if (name.equals("replace")) {
@@ -57,22 +57,22 @@ public class CorrectDetectForMap extends ASTVisitor {
                     ASTNode ancestor = ASTNodes.getParent(invoc,
                             IfStatement.class);
                     if (ancestor != null)
-                        result.add(new PrintableString("replace",
+                        result.add(new Result("replace",
                                 (String) className[0], (String) className[1],
                                 (IFile) className[2], false));
                 } else if (invoc.arguments().size() == 3)
-                    result.add(new PrintableString("conditional replace",
+                    result.add(new Result("conditional replace",
                             (String) className[0], (String) className[1],
                             (IFile) className[2], false));
             } else if (name.equals("remove")) {
                 if (incorrectSet.contains(location)) {
                     if (invoc.arguments().size() == 1) {
-                        result.add(new PrintableString("remove",
+                        result.add(new Result("remove",
                                 (String) className[0], (String) className[1],
                                 (IFile) className[2], false));
                     }
                     if (invoc.arguments().size() == 2)
-                        result.add(new PrintableString("conditional remove",
+                        result.add(new Result("conditional remove",
                                 (String) className[0], (String) className[1],
                                 (IFile) className[2], false));
                 }
@@ -80,7 +80,7 @@ public class CorrectDetectForMap extends ASTVisitor {
         } else if (checkListType(e)) {
             String name = invoc.getName().getIdentifier();
             if (name.equals("addIfAbsent")) {
-                result.add(new PrintableString("addIfAbsent",
+                result.add(new Result("addIfAbsent",
                         (String) className[0], (String) className[1],
                         (IFile) className[2], false));
             }
@@ -175,7 +175,7 @@ public class CorrectDetectForMap extends ASTVisitor {
                 if (nullInitializerMethod.getName().getIdentifier()
                         .equals("get")) {
                     Object[] location = getLocation(nullInitializerMethod);
-                    result.add(new PrintableString("Get", (String) location[0],
+                    result.add(new Result("Get", (String) location[0],
                             (String) location[1], (IFile) location[2], false));
                 }
             }
@@ -184,7 +184,7 @@ public class CorrectDetectForMap extends ASTVisitor {
 
     private Object[] getLocation(MethodInvocation invoc) {
         CompilationUnit unit = (CompilationUnit) invoc.getRoot();
-        return PrintUtils.getClassNameAndLine(unit, invoc);
+        return Results.getClassNameAndLine(unit, invoc);
     }
 
     private boolean checkMapType(Expression e) {
@@ -256,7 +256,7 @@ public class CorrectDetectForMap extends ASTVisitor {
         return false;
     }
 
-    public Set<PrintableString> getResults() {
+    public Set<Result> getResults() {
         return result;
     }
 }

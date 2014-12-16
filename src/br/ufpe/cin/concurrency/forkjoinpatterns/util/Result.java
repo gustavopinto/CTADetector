@@ -1,16 +1,15 @@
 package br.ufpe.cin.concurrency.forkjoinpatterns.util;
 
 import org.eclipse.core.resources.IFile;
-import org.eclipse.jdt.ui.actions.ProjectActionGroup;
 
-public class PrintableString {
+public class Result {
 	private String javaProject;
 	private String className;
 	private String blackList;
 	private String line;
 	private IFile file;
 
-	public PrintableString(String javaProject, String className, String blackList, int line, IFile file) {
+	public Result(String javaProject, String className, String blackList, int line, IFile file) {
 		this.javaProject = javaProject;
 		this.className = className;
 		this.blackList = blackList;
@@ -20,7 +19,7 @@ public class PrintableString {
 	}
 
 	@Deprecated
-	public PrintableString(String string, String string2, String string3,
+	public Result(String string, String string2, String string3,
 			IFile iFile, boolean hasSynchronized) {
 		// TODO Auto-generated constructor stub
 	}
@@ -47,8 +46,8 @@ public class PrintableString {
 	
 	@Override
 	public boolean equals(Object o) {
-		if (o instanceof PrintableString) {
-			PrintableString ps2 = (PrintableString) o;
+		if (o instanceof Result) {
+			Result ps2 = (Result) o;
 			String s1 = className + line;
 			String s2 = ps2.className + ps2.line;
 			return s1.equals(s2);

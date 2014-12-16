@@ -48,15 +48,15 @@ import org.eclipse.ui.console.MessageConsoleStream;
 
 import br.ufpe.cin.concurrency.forkjoinpatterns.actions.PatternDetectionAction;
 import br.ufpe.cin.concurrency.forkjoinpatterns.util.BindingUtils;
-import br.ufpe.cin.concurrency.forkjoinpatterns.util.PrintUtils;
-import br.ufpe.cin.concurrency.forkjoinpatterns.util.PrintableString;
+import br.ufpe.cin.concurrency.forkjoinpatterns.util.Results;
+import br.ufpe.cin.concurrency.forkjoinpatterns.util.Result;
 import br.ufpe.cin.concurrency.forkjoinpatterns.util.RefactoringUtil;
 import br.ufpe.cin.concurrency.forkjoinpatterns.util.StatementVisitor;
 
 public class SemanticPatternForConcurrentHashMap extends ASTVisitor {
 
     protected IBinding fFieldBinding;
-    private Set<PrintableString> results = new HashSet<PrintableString>();
+    private Set<Result> results = new HashSet<Result>();
     protected Set<String> refactoredLine = new HashSet<String>();
     protected CollectVariableInfo info;
     protected ICompilationUnit unit;
@@ -420,7 +420,7 @@ public class SemanticPatternForConcurrentHashMap extends ASTVisitor {
 
             if (invocation instanceof MethodInvocation) {
                 CompilationUnit unit = (CompilationUnit) invocation.getRoot();
-                Object[] className = PrintUtils.getClassNameAndLine(unit,
+                Object[] className = Results.getClassNameAndLine(unit,
                         invocation);
                 boolean hasSync = BindingUtils.hasSynchronized(invocation);
                 if (checkMethodNameAndBinding((MethodInvocation) invocation,
@@ -432,7 +432,7 @@ public class SemanticPatternForConcurrentHashMap extends ASTVisitor {
                             // boolean = containsKey(); if(!boolean) { ...
                             // put(); ... }
                             // -> putIfAbsent();
-                            results.add(new PrintableString(
+                            results.add(new Result(
                                     "boolean = containsKey()/get(); if(!boolean or !method()) { ...put();... } ",
                                     (String) className[0],
                                     (String) className[1],
@@ -445,7 +445,7 @@ public class SemanticPatternForConcurrentHashMap extends ASTVisitor {
                         } else {
                             // if(method() != null) { ...put();... } ->
                             // replace();
-                            results.add(new PrintableString(
+                            results.add(new Result(
                                     "if(method() != null or v != null) { ...put();... } ",
                                     (String) className[0],
                                     (String) className[1],
@@ -461,7 +461,7 @@ public class SemanticPatternForConcurrentHashMap extends ASTVisitor {
                             // boolean = containsKey(); if(boolean) {
                             // ...put();... }
                             // -> replace();
-                            results.add(new PrintableString(
+                            results.add(new Result(
                                     "boolean = containsKey()/get(); if(boolean or method()) { ...put();... } ",
                                     (String) className[0],
                                     (String) className[1],
@@ -474,7 +474,7 @@ public class SemanticPatternForConcurrentHashMap extends ASTVisitor {
                         } else {
                             // if(method() == null) { ...put();... } ->
                             // putIfAbsent();
-                            results.add(new PrintableString(
+                            results.add(new Result(
                                     "if(method() == null or v == null) { ...put();... } ",
                                     (String) className[0],
                                     (String) className[1],
@@ -501,7 +501,7 @@ public class SemanticPatternForConcurrentHashMap extends ASTVisitor {
                             // boolean = containsKey(); if(boolean) { ...
                             // remove(); ... } ->
                             // remove();
-                            results.add(new PrintableString(
+                            results.add(new Result(
                                     "boolean = containsKey(); if(boolean) { ... remove(); ... } ",
                                     (String) className[0],
                                     (String) className[1],
@@ -516,7 +516,7 @@ public class SemanticPatternForConcurrentHashMap extends ASTVisitor {
                         if (!isDirectConditional) {
                             // if(method() != null) { ... remove(); ... } ->
                             // remove();
-                            results.add(new PrintableString(
+                            results.add(new Result(
                                     "if(method() != null) { ... remove(); ... } ",
                                     (String) className[0],
                                     (String) className[1],
@@ -559,7 +559,7 @@ public class SemanticPatternForConcurrentHashMap extends ASTVisitor {
         return false;
     }
 
-    public Set<PrintableString> getResults() {
+    public Set<Result> getResults() {
         return results;
     }
 

@@ -30,19 +30,21 @@ import org.eclipse.jdt.core.dom.VariableDeclarationStatement;
 import org.eclipse.jdt.core.dom.rewrite.ASTRewrite;
 import org.eclipse.jdt.internal.corext.dom.Bindings;
 
+import br.ufpe.cin.concurrency.forkjoinpatterns.Detector;
 import br.ufpe.cin.concurrency.forkjoinpatterns.actions.ForkJoinMisusesAction;
 import br.ufpe.cin.concurrency.forkjoinpatterns.actions.PatternDetectionAction;
 import br.ufpe.cin.concurrency.forkjoinpatterns.refactors.ForkJoinCopiedPatternRefactor;
 import br.ufpe.cin.concurrency.forkjoinpatterns.util.BlackList;
-import br.ufpe.cin.concurrency.forkjoinpatterns.util.PrintUtils;
-import br.ufpe.cin.concurrency.forkjoinpatterns.util.PrintableString;
+import br.ufpe.cin.concurrency.forkjoinpatterns.util.Results;
+import br.ufpe.cin.concurrency.forkjoinpatterns.util.Result;
 
 public class ForkJoinCopiedPatternDetector extends ASTVisitor implements Detector{
 
 	private List<ITypeBinding> datastructures = null;
-	private Set<PrintableString> results = new HashSet<PrintableString>();
+	private Set<Result> results = new HashSet<Result>();
 	private ForkJoinCopiedPatternRefactor refactor;
 	private boolean isRefactoringAvailable = false;
+	private ASTNode currentClass;
 	
 	public ForkJoinCopiedPatternDetector(ASTRewrite rewriter) {
 		this.refactor = new ForkJoinCopiedPatternRefactor(rewriter);
@@ -54,6 +56,7 @@ public class ForkJoinCopiedPatternDetector extends ASTVisitor implements Detecto
 		if (superClass != null) {
 			if (superClass.getName().equals("RecursiveAction") || superClass.getName().equals("RecursiveTask")) {
 				this.datastructures = getDataStructureFields(node);
+				this.currentClass = node;
 				
 				for(MethodDeclaration method: node.getMethods()) {
 					if(method.isConstructor()) {
@@ -153,7 +156,7 @@ public class ForkJoinCopiedPatternDetector extends ASTVisitor implements Detecto
 		}
 
 		for (MethodInvocation method : methodInvocs) {
-			if (BlackList.contains(method)) {
+			if (BlackList.has(method)) {
 				for (Object args : method.arguments()) {
 					if (args instanceof SimpleName) {
 						ITypeBinding currentField = ((SimpleName) args).resolveTypeBinding();
@@ -164,9 +167,10 @@ public class ForkJoinCopiedPatternDetector extends ASTVisitor implements Detecto
 									System.out.println("DETECTED!!!");
 									System.out.println(method);
 									isRefactoringAvailable = true;
-									PrintableString metadata = PrintUtils.getMetadata(method);
+									Result metadata = Results.getMetadata(method);
 									results.add(metadata);
-									refactor.refactor(method.getParent());
+									refactor.refactor(currentClass);
+									return;
 								}
 							}
 						}
@@ -209,11 +213,13 @@ public class ForkJoinCopiedPatternDetector extends ASTVisitor implements Detecto
 	private boolean isList(ITypeBinding currentField) {
 		return currentField.getQualifiedName().contains("java.util.List");
 	}
-	
-	public Set<PrintableString> getResults() {
+
+	@Override
+	public Set<Result> getResults() {
         return results;
     }
 	
+	@Override
 	public boolean isRefactoringAvailable() {
 		return isRefactoringAvailable;
 	}
