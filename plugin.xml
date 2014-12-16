@@ -41,10 +41,10 @@
          </action>-->
          <action
                label="Detect ForkJoin Misuses"
-               class="br.ufpe.cin.concurrency.forkjoinpatterns.actions.DetectionForkJoinMisusesAction"
+               class="br.ufpe.cin.concurrency.forkjoinpatterns.actions.ForkJoinMisusesAction"
                menubarPath="concurrencypatterns.menu1/group1"
                enablesFor="1"
-               id="concurrencypatterns.DetectionForkJoinUsagesAction">
+               id="concurrencypatterns.ForkJoinUsagesAction">
          </action>
       </objectContribution>
    </extension>

@@ -26,11 +26,11 @@ import org.eclipse.ui.console.ConsolePlugin;
 import org.eclipse.ui.console.IConsole;
 import org.eclipse.ui.console.MessageConsole;
 
-import br.ufpe.cin.concurrency.forkjoinpatterns.detection.AtomicViolationPatternForConcurrentHashMap;
-import br.ufpe.cin.concurrency.forkjoinpatterns.detection.CollectVariableInfo;
-import br.ufpe.cin.concurrency.forkjoinpatterns.detection.CorrectDetectForMap;
-import br.ufpe.cin.concurrency.forkjoinpatterns.detection.LazyInitializationPattern;
-import br.ufpe.cin.concurrency.forkjoinpatterns.detection.SemanticPatternForConcurrentHashMap;
+import br.ufpe.cin.concurrency.forkjoinpatterns.detectors.AtomicViolationPatternForConcurrentHashMap;
+import br.ufpe.cin.concurrency.forkjoinpatterns.detectors.CollectVariableInfo;
+import br.ufpe.cin.concurrency.forkjoinpatterns.detectors.CorrectDetectForMap;
+import br.ufpe.cin.concurrency.forkjoinpatterns.detectors.LazyInitializationPattern;
+import br.ufpe.cin.concurrency.forkjoinpatterns.detectors.SemanticPatternForConcurrentHashMap;
 import br.ufpe.cin.concurrency.forkjoinpatterns.util.PrintUtils;
 import br.ufpe.cin.concurrency.forkjoinpatterns.util.PrintableString;
 import br.ufpe.cin.concurrency.forkjoinpatterns.view.ResultViewer;

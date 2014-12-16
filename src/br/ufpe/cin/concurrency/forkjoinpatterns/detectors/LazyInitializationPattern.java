@@ -1,4 +1,4 @@
-package br.ufpe.cin.concurrency.forkjoinpatterns.detection;
+package br.ufpe.cin.concurrency.forkjoinpatterns.detectors;
 
 import java.util.ArrayList;
 import java.util.HashSet;

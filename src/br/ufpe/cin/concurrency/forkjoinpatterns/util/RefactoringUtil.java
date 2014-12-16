@@ -18,7 +18,7 @@ import org.eclipse.jdt.core.dom.VariableDeclarationStatement;
 import org.eclipse.jdt.core.dom.rewrite.ASTRewrite;
 import org.eclipse.jdt.internal.corext.dom.ASTNodes;
 
-import br.ufpe.cin.concurrency.forkjoinpatterns.detection.CollectVariableInfo;
+import br.ufpe.cin.concurrency.forkjoinpatterns.detectors.CollectVariableInfo;
 
 public class RefactoringUtil {
     private ASTRewrite rewriter;

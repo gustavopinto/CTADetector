@@ -28,7 +28,7 @@ import org.eclipse.jdt.internal.corext.dom.ASTNodes;
 import org.eclipse.jdt.internal.corext.dom.Bindings;
 import org.eclipse.jdt.internal.corext.dom.JdtASTMatcher;
 
-import br.ufpe.cin.concurrency.forkjoinpatterns.detection.CollectVariableInfo;
+import br.ufpe.cin.concurrency.forkjoinpatterns.detectors.CollectVariableInfo;
 
 public class BindingUtils {
     public static Set<String> queueType = new HashSet<String>();

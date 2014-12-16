@@ -27,22 +27,21 @@ import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 
-import br.ufpe.cin.concurrency.forkjoinpatterns.detection.ForkJoinCopiedPattern;
-import br.ufpe.cin.concurrency.forkjoinpatterns.fix.ConcurrentCollectionFix;
-import br.ufpe.cin.concurrency.forkjoinpatterns.fix.ConcurrentCollectionFixWizard;
+import br.ufpe.cin.concurrency.forkjoinpatterns.detectors.ForkJoinCopiedPatternDetector;
+import br.ufpe.cin.concurrency.forkjoinpatterns.fix.ForkJoinMisuseFix;
+import br.ufpe.cin.concurrency.forkjoinpatterns.fix.ForkJoinMisuseFixWizard;
 import br.ufpe.cin.concurrency.forkjoinpatterns.util.PrintableString;
 import br.ufpe.cin.concurrency.forkjoinpatterns.view.ResultViewer;
 
-public class DetectionForkJoinMisusesAction implements IObjectActionDelegate {
+public class ForkJoinMisusesAction implements IObjectActionDelegate {
 
     private Shell shell;
     private IJavaProject project;
-    private static boolean isRewrite;
 
     /**
      * Constructor for Action1.
      */
-    public DetectionForkJoinMisusesAction() {
+    public ForkJoinMisusesAction() {
         super();
     }
 
@@ -71,12 +70,17 @@ public class DetectionForkJoinMisusesAction implements IObjectActionDelegate {
 
                     ASTRewrite rewriter = ASTRewrite.create(root.getAST());
                     
-                    ForkJoinCopiedPattern copied = new ForkJoinCopiedPattern(rewriter);
+                    ForkJoinCopiedPatternDetector copied = new ForkJoinCopiedPatternDetector(rewriter);
                     root.accept(copied);
                     detections.addAll(copied.getResults());
                     
 //                    ConcurrentCollectionFix fix = new ConcurrentCollectionFix(unit, rewriter);
 //                    run(new ConcurrentCollectionFixWizard(fix, "Concurrent Collection Fix"), shell, "Concurrent Collection Fix");
+                    
+                    if (copied.isRefactoringAvailable()) {
+                    	ForkJoinMisuseFix fix = new ForkJoinMisuseFix(unit, rewriter);
+                        run(new ForkJoinMisuseFixWizard(fix, "ForkJoin Fix"), shell, "ForkJoin Fix");
+                    }
                 }
                 
                 IWorkbenchPage page = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();

@@ -1,4 +1,4 @@
-package br.ufpe.cin.concurrency.forkjoinpatterns.detection;
+package br.ufpe.cin.concurrency.forkjoinpatterns.detectors;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -6,6 +6,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
+import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.ASTVisitor;
 import org.eclipse.jdt.core.dom.Assignment;
@@ -29,18 +30,22 @@ import org.eclipse.jdt.core.dom.VariableDeclarationStatement;
 import org.eclipse.jdt.core.dom.rewrite.ASTRewrite;
 import org.eclipse.jdt.internal.corext.dom.Bindings;
 
+import br.ufpe.cin.concurrency.forkjoinpatterns.actions.ForkJoinMisusesAction;
+import br.ufpe.cin.concurrency.forkjoinpatterns.actions.PatternDetectionAction;
+import br.ufpe.cin.concurrency.forkjoinpatterns.refactors.ForkJoinCopiedPatternRefactor;
 import br.ufpe.cin.concurrency.forkjoinpatterns.util.BlackList;
 import br.ufpe.cin.concurrency.forkjoinpatterns.util.PrintUtils;
 import br.ufpe.cin.concurrency.forkjoinpatterns.util.PrintableString;
 
-public class ForkJoinCopiedPattern extends ASTVisitor implements Detector {
+public class ForkJoinCopiedPatternDetector extends ASTVisitor implements Detector{
 
 	private List<ITypeBinding> datastructures = null;
 	private Set<PrintableString> results = new HashSet<PrintableString>();
-	private ASTRewrite rewriter;
+	private ForkJoinCopiedPatternRefactor refactor;
+	private boolean isRefactoringAvailable = false;
 	
-	public ForkJoinCopiedPattern(ASTRewrite rewriter) {
-		this.rewriter = rewriter;
+	public ForkJoinCopiedPatternDetector(ASTRewrite rewriter) {
+		this.refactor = new ForkJoinCopiedPatternRefactor(rewriter);
 	}
 
 	@Override
@@ -158,8 +163,10 @@ public class ForkJoinCopiedPattern extends ASTVisitor implements Detector {
 								if(Bindings.equalDeclarations(currentField, ds)) {
 									System.out.println("DETECTED!!!");
 									System.out.println(method);
+									isRefactoringAvailable = true;
 									PrintableString metadata = PrintUtils.getMetadata(method);
 									results.add(metadata);
+									refactor.refactor(method.getParent());
 								}
 							}
 						}
@@ -206,13 +213,8 @@ public class ForkJoinCopiedPattern extends ASTVisitor implements Detector {
 	public Set<PrintableString> getResults() {
         return results;
     }
-
-//	private boolean checkMethodNameAndBinding(
-//            MethodInvocation methodInvocation, String methodName) {
-//        return BindingUtils.considerBinding(
-//                BindingUtils.resolveBinding(methodInvocation.getExpression()),
-//                fFieldBinding)
-//                && methodInvocation.getName().getIdentifier()
-//                        .equals(methodName);
-//    }
+	
+	public boolean isRefactoringAvailable() {
+		return isRefactoringAvailable;
+	}
 }

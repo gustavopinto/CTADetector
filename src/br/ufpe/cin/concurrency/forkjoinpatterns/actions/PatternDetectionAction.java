@@ -27,12 +27,12 @@ import org.eclipse.ui.console.ConsolePlugin;
 import org.eclipse.ui.console.IConsole;
 import org.eclipse.ui.console.MessageConsole;
 
-import br.ufpe.cin.concurrency.forkjoinpatterns.detection.AtomicViolationPatternForConcurrentHashMap;
-import br.ufpe.cin.concurrency.forkjoinpatterns.detection.AtomicViolationPatternForQueue;
-import br.ufpe.cin.concurrency.forkjoinpatterns.detection.AtomicityViolationPatternForCopyOnWrite;
-import br.ufpe.cin.concurrency.forkjoinpatterns.detection.CollectVariableInfo;
-import br.ufpe.cin.concurrency.forkjoinpatterns.detection.LazyInitializationPattern;
-import br.ufpe.cin.concurrency.forkjoinpatterns.detection.SemanticPatternForConcurrentHashMap;
+import br.ufpe.cin.concurrency.forkjoinpatterns.detectors.AtomicViolationPatternForConcurrentHashMap;
+import br.ufpe.cin.concurrency.forkjoinpatterns.detectors.AtomicViolationPatternForQueue;
+import br.ufpe.cin.concurrency.forkjoinpatterns.detectors.AtomicityViolationPatternForCopyOnWrite;
+import br.ufpe.cin.concurrency.forkjoinpatterns.detectors.CollectVariableInfo;
+import br.ufpe.cin.concurrency.forkjoinpatterns.detectors.LazyInitializationPattern;
+import br.ufpe.cin.concurrency.forkjoinpatterns.detectors.SemanticPatternForConcurrentHashMap;
 import br.ufpe.cin.concurrency.forkjoinpatterns.fix.ConcurrentCollectionFix;
 import br.ufpe.cin.concurrency.forkjoinpatterns.fix.ConcurrentCollectionFixWizard;
 import br.ufpe.cin.concurrency.forkjoinpatterns.util.PrintUtils;
