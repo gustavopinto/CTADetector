@@ -40,6 +40,15 @@ public class ForkJoinCopiedPatternRefactor implements Refactor {
 		
 		MethodDeclaration constructor = createPrivateConstructor(node);
 		listRewrite.insertAfter(constructor, to, null);
+		
+		//update copy statement
+		updateComputeMethod(node);
+		
+	}
+
+	private void updateComputeMethod(ASTNode node) {
+		// TODO Auto-generated method stub
+		
 	}
 
 	private MethodDeclaration createPrivateConstructor(ASTNode node) {

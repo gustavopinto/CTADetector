@@ -48,27 +48,31 @@ public class ForkJoinCopiedPatternDetector extends ASTVisitor implements Detecto
 	}
 
 	@Override
-	public boolean visit(TypeDeclaration node) {
-		ITypeBinding superClass = node.resolveBinding().getSuperclass();
+	public boolean visit(TypeDeclaration clazz) {
+		ITypeBinding superClass = clazz.resolveBinding().getSuperclass();
 		if (superClass != null) {
-			if (superClass.getName().equals("RecursiveAction") || superClass.getName().equals("RecursiveTask")) {
-				this.datastructures = getDataStructureFields(node);
-				this.currentClass = node;
+			if (isForkJoinSubClass(superClass)) {
+				this.datastructures = getDataStructureFields(clazz);
+				this.currentClass = clazz;
 				
-				for(MethodDeclaration method: node.getMethods()) {
-					if(method.isConstructor()) {
-						analyzeConstructor(method);
-					}
-					
-					if(!method.isConstructor() && 
-							method.parameters().size() == 0 && 
-							method.getName().getIdentifier().equals("compute")) {
+				for(MethodDeclaration method: clazz.getMethods()) {
+					if(isComputeMethod(method)) {
 						analyzeComputeMethod(method);
 					}
 				}
 			}
 		}
 		return true;
+	}
+
+	private boolean isComputeMethod(MethodDeclaration method) {
+		return !method.isConstructor() && 
+				method.parameters().size() == 0 && 
+				method.getName().getIdentifier().equals("compute");
+	}
+
+	private boolean isForkJoinSubClass(ITypeBinding superClass) {
+		return superClass.getName().equals("RecursiveAction") || superClass.getName().equals("RecursiveTask");
 	}
 
 	/**
@@ -180,19 +184,6 @@ public class ForkJoinCopiedPatternDetector extends ASTVisitor implements Detecto
 	private boolean isDataStructure(Expression node) {
 		ITypeBinding type = node.resolveTypeBinding();
 		return type.isArray() || isList(type);
-	}
-
-	/** 
-	 * Verifies if constructor initializes the data structure var
-	 *  
-	 * @param method
-	 */
-	private void analyzeConstructor(MethodDeclaration method) {
-		for(Object param: method.parameters()) {
-			VariableDeclaration var = (VariableDeclaration) param;
-			ITypeBinding type = var.resolveBinding().getType();
-//            System.out.println(var + " -> " + type);
-		}		
 	}
 
 	private List<ITypeBinding> getDataStructureFields(TypeDeclaration node) {
