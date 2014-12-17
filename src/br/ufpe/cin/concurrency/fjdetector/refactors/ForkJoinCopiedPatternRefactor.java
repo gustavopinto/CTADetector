@@ -1,28 +1,36 @@
 package br.ufpe.cin.concurrency.fjdetector.refactors;
 
+import java.util.List;
+
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.Assignment;
 import org.eclipse.jdt.core.dom.Block;
+import org.eclipse.jdt.core.dom.Expression;
 import org.eclipse.jdt.core.dom.FieldAccess;
 import org.eclipse.jdt.core.dom.FieldDeclaration;
+import org.eclipse.jdt.core.dom.IfStatement;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
 import org.eclipse.jdt.core.dom.Modifier;
 import org.eclipse.jdt.core.dom.PrimitiveType;
 import org.eclipse.jdt.core.dom.SingleVariableDeclaration;
+import org.eclipse.jdt.core.dom.Statement;
 import org.eclipse.jdt.core.dom.TypeDeclaration;
 import org.eclipse.jdt.core.dom.VariableDeclarationFragment;
 import org.eclipse.jdt.core.dom.rewrite.ASTRewrite;
 import org.eclipse.jdt.core.dom.rewrite.ListRewrite;
 
 import br.ufpe.cin.concurrency.fjdetector.Refactor;
+import br.ufpe.cin.concurrency.fjdetector.detectors.ForkJoinCopiedPatternDetector;
 
 public class ForkJoinCopiedPatternRefactor implements Refactor {
 
 	private final ASTRewrite rewriter;
+	private final ForkJoinCopiedPatternDetector detector;
 
-	public ForkJoinCopiedPatternRefactor(ASTRewrite rewriter) {
+	public ForkJoinCopiedPatternRefactor(ASTRewrite rewriter, ForkJoinCopiedPatternDetector detector) {
 		this.rewriter = rewriter;
+		this.detector = detector;
 	}
 
 	@Override
@@ -41,14 +49,41 @@ public class ForkJoinCopiedPatternRefactor implements Refactor {
 		MethodDeclaration constructor = createPrivateConstructor(node);
 		listRewrite.insertAfter(constructor, to, null);
 		
-		//update copy statement
-		updateComputeMethod(node);
-		
+		for (MethodDeclaration method : clazz.getMethods()) {
+			if (!method.isConstructor() && 
+					method.parameters().size() == 0 && 
+					method.getName().getIdentifier().equals("compute")) {
+				
+				List stms = method.getBody().statements();
+				for (Object o: stms) {
+					Statement s = (Statement) o;
+					if (s instanceof IfStatement) {
+		                IfStatement ifstmt = (IfStatement) s;
+
+		                Expression ife = ifstmt.getExpression();
+//		                analyzeSequentialCase(ife);
+		                
+		                Statement elsestmt = ifstmt.getElseStatement();
+		                ASTNode newElseStm = refactorElseStatement(ASTNode.copySubtree(elsestmt.getAST(), elsestmt));
+		                rewriter.replace(elsestmt, newElseStm, null);
+					}
+				}
+			}
+		}
 	}
 
-	private void updateComputeMethod(ASTNode node) {
-		// TODO Auto-generated method stub
-		
+	private ASTNode refactorElseStatement(ASTNode elseStm) {
+		if (elseStm instanceof IfStatement) {
+			IfStatement then = (IfStatement) elseStm;
+			if (then.getThenStatement() instanceof Block) {
+				
+				Block block = ((Block) then.getThenStatement());
+				block.statements().remove(0);
+//				System.out.println(block);
+				return elseStm;
+			}
+		}
+		return null;
 	}
 
 	private MethodDeclaration createPrivateConstructor(ASTNode node) {

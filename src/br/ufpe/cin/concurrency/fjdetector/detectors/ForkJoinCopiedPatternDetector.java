@@ -23,7 +23,6 @@ import org.eclipse.jdt.core.dom.ReturnStatement;
 import org.eclipse.jdt.core.dom.SimpleName;
 import org.eclipse.jdt.core.dom.Statement;
 import org.eclipse.jdt.core.dom.TypeDeclaration;
-import org.eclipse.jdt.core.dom.VariableDeclaration;
 import org.eclipse.jdt.core.dom.VariableDeclarationFragment;
 import org.eclipse.jdt.core.dom.VariableDeclarationStatement;
 import org.eclipse.jdt.core.dom.rewrite.ASTRewrite;
@@ -42,9 +41,9 @@ public class ForkJoinCopiedPatternDetector extends ASTVisitor implements Detecto
 	private ForkJoinCopiedPatternRefactor refactor;
 	private boolean isRefactoringAvailable = false;
 	private ASTNode currentClass;
-	
+
 	public ForkJoinCopiedPatternDetector(ASTRewrite rewriter) {
-		this.refactor = new ForkJoinCopiedPatternRefactor(rewriter);
+		this.refactor = new ForkJoinCopiedPatternRefactor(rewriter, this);
 	}
 
 	@Override
@@ -65,7 +64,7 @@ public class ForkJoinCopiedPatternDetector extends ASTVisitor implements Detecto
 		return true;
 	}
 
-	private boolean isComputeMethod(MethodDeclaration method) {
+	public boolean isComputeMethod(MethodDeclaration method) {
 		return !method.isConstructor() && 
 				method.parameters().size() == 0 && 
 				method.getName().getIdentifier().equals("compute");
@@ -102,15 +101,40 @@ public class ForkJoinCopiedPatternDetector extends ASTVisitor implements Detecto
 	}
 
 	private void analyzeParallelCase(Statement elsestmt) {
-		if (elsestmt instanceof IfStatement) {
-        	IfStatement then = (IfStatement) elsestmt;
-        	if (then.getThenStatement() instanceof Block) {
-        		List statements = ((Block) then.getThenStatement()).statements();
-				handleStatement(statements);
+		List statements = getBlock(elsestmt).statements();
+		List<MethodInvocation> methodInvocs = extractMethodInvocations(statements);
+		
+		for (MethodInvocation method : methodInvocs) {
+			if (BlackList.has(method)) {
+				for (Object args : method.arguments()) {
+					if (args instanceof SimpleName) {
+						ITypeBinding currentField = ((SimpleName) args).resolveTypeBinding();
+						
+						if (currentField.isArray() || isList(currentField)) {
+							for (ITypeBinding ds : datastructures) {
+								if(Bindings.equalDeclarations(currentField, ds)) {
+									isRefactoringAvailable = true;
+									Result metadata = Results.getMetadata(method);
+									results.add(metadata);
+									refactor.refactor(currentClass);
+									return;
+								}
+							}
+    					}
+        			}
+        		}
         	}
-        	
-        	System.out.println();
         }
+	}
+
+	private Block getBlock(Statement elsestmt) {
+		if (elsestmt instanceof IfStatement) {
+			IfStatement then = (IfStatement) elsestmt;
+			if (then.getThenStatement() instanceof Block) {
+				return ((Block) then.getThenStatement());
+			}
+		}
+		throw new UnsupportedOperationException("It is not an Else statement!!");
 	}
 
 	private void analyzeSequentialCase(Expression ife) {
@@ -127,7 +151,7 @@ public class ForkJoinCopiedPatternDetector extends ASTVisitor implements Detecto
         }		
 	}
 
-	private void handleStatement(List stmts) {
+	private List<MethodInvocation> extractMethodInvocations(List stmts) {
 		List<MethodInvocation> methodInvocs = new LinkedList<MethodInvocation>();
 		
 		for (Object o : stmts) {
@@ -156,29 +180,7 @@ public class ForkJoinCopiedPatternDetector extends ASTVisitor implements Detecto
             }
 		}
 
-		for (MethodInvocation method : methodInvocs) {
-			if (BlackList.has(method)) {
-				for (Object args : method.arguments()) {
-					if (args instanceof SimpleName) {
-						ITypeBinding currentField = ((SimpleName) args).resolveTypeBinding();
-
-						if (currentField.isArray() || isList(currentField)) {
-							for (ITypeBinding ds : datastructures) {
-								if(Bindings.equalDeclarations(currentField, ds)) {
-									System.out.println("DETECTED!!!");
-									System.out.println(method);
-									isRefactoringAvailable = true;
-									Result metadata = Results.getMetadata(method);
-									results.add(metadata);
-									refactor.refactor(currentClass);
-									return;
-								}
-							}
-						}
-					}
-				}
-			}
-		}
+		return methodInvocs;
 	}        
 
 	private boolean isDataStructure(Expression node) {
