@@ -10,27 +10,28 @@ import org.eclipse.jdt.core.dom.Expression;
 import org.eclipse.jdt.core.dom.FieldAccess;
 import org.eclipse.jdt.core.dom.FieldDeclaration;
 import org.eclipse.jdt.core.dom.IfStatement;
+import org.eclipse.jdt.core.dom.InfixExpression;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
 import org.eclipse.jdt.core.dom.Modifier;
+import org.eclipse.jdt.core.dom.ParenthesizedExpression;
 import org.eclipse.jdt.core.dom.PrimitiveType;
 import org.eclipse.jdt.core.dom.SingleVariableDeclaration;
 import org.eclipse.jdt.core.dom.Statement;
 import org.eclipse.jdt.core.dom.TypeDeclaration;
 import org.eclipse.jdt.core.dom.VariableDeclarationFragment;
+import org.eclipse.jdt.core.dom.VariableDeclarationStatement;
+import org.eclipse.jdt.core.dom.InfixExpression.Operator;
 import org.eclipse.jdt.core.dom.rewrite.ASTRewrite;
 import org.eclipse.jdt.core.dom.rewrite.ListRewrite;
 
 import br.ufpe.cin.concurrency.fjdetector.Refactor;
-import br.ufpe.cin.concurrency.fjdetector.detectors.ForkJoinCopiedPatternDetector;
 
 public class ForkJoinCopiedPatternRefactor implements Refactor {
 
 	private final ASTRewrite rewriter;
-	private final ForkJoinCopiedPatternDetector detector;
 
-	public ForkJoinCopiedPatternRefactor(ASTRewrite rewriter, ForkJoinCopiedPatternDetector detector) {
+	public ForkJoinCopiedPatternRefactor(ASTRewrite rewriter) {
 		this.rewriter = rewriter;
-		this.detector = detector;
 	}
 
 	@Override
@@ -64,7 +65,7 @@ public class ForkJoinCopiedPatternRefactor implements Refactor {
 //		                analyzeSequentialCase(ife);
 		                
 		                Statement elsestmt = ifstmt.getElseStatement();
-		                ASTNode newElseStm = refactorElseStatement(ASTNode.copySubtree(elsestmt.getAST(), elsestmt));
+		                ASTNode newElseStm = refactorElseStatement(elsestmt);
 		                rewriter.replace(elsestmt, newElseStm, null);
 					}
 				}
@@ -73,17 +74,60 @@ public class ForkJoinCopiedPatternRefactor implements Refactor {
 	}
 
 	private ASTNode refactorElseStatement(ASTNode elseStm) {
-		if (elseStm instanceof IfStatement) {
-			IfStatement then = (IfStatement) elseStm;
+		AST ast = elseStm.getAST();
+		ASTNode newElseStm = ASTNode.copySubtree(elseStm.getAST(), elseStm);
+		
+		if (newElseStm instanceof IfStatement) {
+			IfStatement then = (IfStatement) newElseStm;
 			if (then.getThenStatement() instanceof Block) {
-				
 				Block block = ((Block) then.getThenStatement());
-				block.statements().remove(0);
+				for(Object stm: block.statements()) {
+					if(stm instanceof VariableDeclarationStatement) {
+						List vFrags = ((VariableDeclarationStatement) stm).fragments();
+		                for (Object frag : vFrags) {
+		                    Expression e = ((VariableDeclarationFragment) frag).getInitializer();
+		                    if(isSplitExpression(e)) {
+//		                    	InfixExpression infixExpression = ((InfixExpression) e);
+		                    	
+//		                    	Expression left = infixExpression.getLeftOperand();
+//		                        Expression right = infixExpression.getRightOperand();
+//		                        Operator op = infixExpression.getOperator();
+		                        
+		                    	
+		                        InfixExpression splitExpression = ast.newInfixExpression();
+		                        ParenthesizedExpression pExpression = ast.newParenthesizedExpression();
+		                        
+		                        InfixExpression andExpression = ast.newInfixExpression();
+		                        andExpression.setLeftOperand(ast.newSimpleName("from"));
+		                        andExpression.setOperator(Operator.PLUS);
+		                        andExpression.setRightOperand(ast.newSimpleName("to"));
+		                        pExpression.setExpression(andExpression);
+		                        
+		                        splitExpression.setRightOperand(ast.newNumberLiteral("2"));
+		                        splitExpression.setLeftOperand(pExpression);
+		                        splitExpression.setOperator(Operator.DIVIDE);
+		                        
+		                    	System.out.println(splitExpression);
+		                    	
+		                    	rewriter.replace(e, splitExpression, null);
+		                    }
+		                }
+					}
+				}
+//				block.statements().remove(0);
 //				System.out.println(block);
-				return elseStm;
+				return newElseStm;
 			}
 		}
-		return null;
+		throw new UnsupportedOperationException("It is not an Else block!!\n" + elseStm);
+	}
+
+	private boolean isSplitExpression(Expression e) {
+		if (e instanceof InfixExpression) {
+            Operator op = ((InfixExpression) e).getOperator();
+            if (op.equals(Operator.DIVIDE)) return true;
+        }	
+		return false;
 	}
 
 	private MethodDeclaration createPrivateConstructor(ASTNode node) {

@@ -43,7 +43,7 @@ public class ForkJoinCopiedPatternDetector extends ASTVisitor implements Detecto
 	private ASTNode currentClass;
 
 	public ForkJoinCopiedPatternDetector(ASTRewrite rewriter) {
-		this.refactor = new ForkJoinCopiedPatternRefactor(rewriter, this);
+		this.refactor = new ForkJoinCopiedPatternRefactor(rewriter);
 	}
 
 	@Override
