@@ -11,6 +11,7 @@ import org.eclipse.jdt.core.dom.Expression;
 import org.eclipse.jdt.core.dom.ExpressionStatement;
 import org.eclipse.jdt.core.dom.FieldAccess;
 import org.eclipse.jdt.core.dom.FieldDeclaration;
+import org.eclipse.jdt.core.dom.ForStatement;
 import org.eclipse.jdt.core.dom.IfStatement;
 import org.eclipse.jdt.core.dom.InfixExpression;
 import org.eclipse.jdt.core.dom.InfixExpression.Operator;
@@ -23,6 +24,7 @@ import org.eclipse.jdt.core.dom.QualifiedName;
 import org.eclipse.jdt.core.dom.SingleVariableDeclaration;
 import org.eclipse.jdt.core.dom.Statement;
 import org.eclipse.jdt.core.dom.TypeDeclaration;
+import org.eclipse.jdt.core.dom.VariableDeclarationExpression;
 import org.eclipse.jdt.core.dom.VariableDeclarationFragment;
 import org.eclipse.jdt.core.dom.VariableDeclarationStatement;
 import org.eclipse.jdt.core.dom.rewrite.ASTRewrite;
@@ -66,8 +68,8 @@ public class ForkJoinCopiedPatternRefactor implements Refactor {
 					Statement s = (Statement) o;
 					if (s instanceof IfStatement) {
 		                IfStatement ifstmt = (IfStatement) s;
-		                ASTNode newIfStm = refactorIfStatement(ifstmt);
-		                rewriter.replace(ifstmt, newIfStm, null);
+		                refactorIfStatement(ifstmt);
+//		                rewriter.replace(ifstmt, newIfStm, null);
 		                
 		                Statement elsestmt = ifstmt.getElseStatement();
 		                ASTNode newElseStm = refactorElseStatement(elsestmt);
@@ -78,7 +80,7 @@ public class ForkJoinCopiedPatternRefactor implements Refactor {
 		}
 	}
 
-	private ASTNode refactorIfStatement(IfStatement ifstmt) {
+	private void refactorIfStatement(IfStatement ifstmt) {
 		AST ast = ifstmt.getAST();
 		
 		Expression ife = ifstmt.getExpression();
@@ -99,9 +101,36 @@ public class ForkJoinCopiedPatternRefactor implements Refactor {
             splitExpression.setRightOperand(ast.newNumberLiteral(right.toString()));
             splitExpression.setOperator(op);
             
-        	return splitExpression;            
+            rewriter.replace(ife, splitExpression, null);
         }
-		throw new UnsupportedOperationException("It is not an InFix block!!");
+		
+		if (ifstmt.getThenStatement() instanceof Block) {
+			
+			Block block = ((Block) ifstmt.getThenStatement());
+			for (Object stm : block.statements()) {
+				if (stm instanceof ForStatement) {
+					ForStatement forStm = (ForStatement) stm;
+					ForStatement newForStm = (ForStatement) ASTNode.copySubtree(forStm.getAST(), forStm);
+
+					VariableDeclarationFragment varFrag = ast.newVariableDeclarationFragment();
+					varFrag.setName(ast.newSimpleName("i"));
+					varFrag.setInitializer(ast.newSimpleName("from"));
+
+					VariableDeclarationExpression varDec = ast.newVariableDeclarationExpression(varFrag);
+					varDec.setType(ast.newPrimitiveType(PrimitiveType.INT));
+					
+					newForStm.initializers().set(0, varDec);
+
+					InfixExpression forExpression = ast.newInfixExpression();
+		            forExpression.setLeftOperand(ast.newSimpleName("i"));
+		            forExpression.setOperator(Operator.LESS);
+		            forExpression.setRightOperand(ast.newSimpleName("to"));
+		            
+		            newForStm.setExpression(forExpression);
+		            rewriter.replace(forStm, newForStm, null);
+				}
+			}
+		}
 	}
 
 	private ASTNode refactorElseStatement(ASTNode elseStm) {
