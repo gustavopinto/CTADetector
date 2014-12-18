@@ -25,10 +25,5 @@ public class Results {
 		String blackList = String.format("%s.%s", node.getExpression(), node.getName());
 		
 		return new Result(javaProject, className, blackList, line, file);
-	}
-	
-	@Deprecated
-    public static Object[] getClassNameAndLine(CompilationUnit unit, ASTNode n) {
-        return null;
     }
 }
