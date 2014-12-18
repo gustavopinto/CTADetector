@@ -66,9 +66,8 @@ public class ForkJoinCopiedPatternRefactor implements Refactor {
 					Statement s = (Statement) o;
 					if (s instanceof IfStatement) {
 		                IfStatement ifstmt = (IfStatement) s;
-
-		                Expression ife = ifstmt.getExpression();
-//		                analyzeSequentialCase(ife);
+		                ASTNode newIfStm = refactorIfStatement(ifstmt);
+		                rewriter.replace(ifstmt, newIfStm, null);
 		                
 		                Statement elsestmt = ifstmt.getElseStatement();
 		                ASTNode newElseStm = refactorElseStatement(elsestmt);
@@ -77,6 +76,32 @@ public class ForkJoinCopiedPatternRefactor implements Refactor {
 				}
 			}
 		}
+	}
+
+	private ASTNode refactorIfStatement(IfStatement ifstmt) {
+		AST ast = ifstmt.getAST();
+		
+		Expression ife = ifstmt.getExpression();
+		
+		if (ife instanceof InfixExpression) {
+			Expression right = ((InfixExpression) ife).getRightOperand();
+			Operator op = ((InfixExpression) ife).getOperator();
+			
+            ParenthesizedExpression pExpression = ast.newParenthesizedExpression();
+            InfixExpression minusExpression = ast.newInfixExpression();
+            minusExpression.setLeftOperand(ast.newSimpleName("to"));
+            minusExpression.setOperator(Operator.MINUS);
+            minusExpression.setRightOperand(ast.newSimpleName("from"));
+            pExpression.setExpression(minusExpression);
+
+            InfixExpression splitExpression = ast.newInfixExpression();
+            splitExpression.setLeftOperand(pExpression);
+            splitExpression.setRightOperand(ast.newNumberLiteral(right.toString()));
+            splitExpression.setOperator(op);
+            
+        	return splitExpression;            
+        }
+		throw new UnsupportedOperationException("It is not an InFix block!!");
 	}
 
 	private ASTNode refactorElseStatement(ASTNode elseStm) {
