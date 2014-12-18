@@ -11,7 +11,6 @@ import org.eclipse.jdt.core.dom.Expression;
 import org.eclipse.jdt.core.dom.ExpressionStatement;
 import org.eclipse.jdt.core.dom.FieldAccess;
 import org.eclipse.jdt.core.dom.FieldDeclaration;
-import org.eclipse.jdt.core.dom.ITypeBinding;
 import org.eclipse.jdt.core.dom.IfStatement;
 import org.eclipse.jdt.core.dom.InfixExpression;
 import org.eclipse.jdt.core.dom.InfixExpression.Operator;
@@ -20,6 +19,7 @@ import org.eclipse.jdt.core.dom.MethodInvocation;
 import org.eclipse.jdt.core.dom.Modifier;
 import org.eclipse.jdt.core.dom.ParenthesizedExpression;
 import org.eclipse.jdt.core.dom.PrimitiveType;
+import org.eclipse.jdt.core.dom.QualifiedName;
 import org.eclipse.jdt.core.dom.SingleVariableDeclaration;
 import org.eclipse.jdt.core.dom.Statement;
 import org.eclipse.jdt.core.dom.TypeDeclaration;
@@ -34,7 +34,7 @@ import br.ufpe.cin.concurrency.fjdetector.util.BlackList;
 public class ForkJoinCopiedPatternRefactor implements Refactor {
 
 	private final ASTRewrite rewriter;
-	private ITypeBinding dataStructure;
+	private String dataStructure;
 
 	public ForkJoinCopiedPatternRefactor(ASTRewrite rewriter) {
 		this.rewriter = rewriter;
@@ -94,7 +94,8 @@ public class ForkJoinCopiedPatternRefactor implements Refactor {
 		                    Expression e = ((VariableDeclarationFragment) frag).getInitializer();
 		                    if(isSplitExpression(e)) {
 		                    	Expression left = ((InfixExpression) e).getLeftOperand();
-		                    	this.dataStructure = left.resolveTypeBinding();
+		                    	QualifiedName qname = (QualifiedName)left;
+		                    	this.dataStructure = qname.getQualifier().getFullyQualifiedName();
 
 		                        ParenthesizedExpression pExpression = ast.newParenthesizedExpression();
 		                        InfixExpression plusExpression = ast.newInfixExpression();
@@ -120,6 +121,7 @@ public class ForkJoinCopiedPatternRefactor implements Refactor {
 								MethodInvocation method = (MethodInvocation) ex;
 								for (int i = 0; i < method.arguments().size(); i++) {
 									ClassInstanceCreation instance = (ClassInstanceCreation) method.arguments().get(i);
+									instance.arguments().set(0, ast.newSimpleName(this.dataStructure));
 									if(i % 2 ==0) {
 										instance.arguments().add(ast.newSimpleName("from"));
 										instance.arguments().add(ast.newSimpleName("split"));
