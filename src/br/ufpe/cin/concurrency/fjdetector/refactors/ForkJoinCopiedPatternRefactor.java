@@ -11,7 +11,9 @@ import org.eclipse.jdt.core.dom.FieldAccess;
 import org.eclipse.jdt.core.dom.FieldDeclaration;
 import org.eclipse.jdt.core.dom.IfStatement;
 import org.eclipse.jdt.core.dom.InfixExpression;
+import org.eclipse.jdt.core.dom.InfixExpression.Operator;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
+import org.eclipse.jdt.core.dom.MethodInvocation;
 import org.eclipse.jdt.core.dom.Modifier;
 import org.eclipse.jdt.core.dom.ParenthesizedExpression;
 import org.eclipse.jdt.core.dom.PrimitiveType;
@@ -20,11 +22,11 @@ import org.eclipse.jdt.core.dom.Statement;
 import org.eclipse.jdt.core.dom.TypeDeclaration;
 import org.eclipse.jdt.core.dom.VariableDeclarationFragment;
 import org.eclipse.jdt.core.dom.VariableDeclarationStatement;
-import org.eclipse.jdt.core.dom.InfixExpression.Operator;
 import org.eclipse.jdt.core.dom.rewrite.ASTRewrite;
 import org.eclipse.jdt.core.dom.rewrite.ListRewrite;
 
 import br.ufpe.cin.concurrency.fjdetector.Refactor;
+import br.ufpe.cin.concurrency.fjdetector.util.BlackList;
 
 public class ForkJoinCopiedPatternRefactor implements Refactor {
 
@@ -87,39 +89,44 @@ public class ForkJoinCopiedPatternRefactor implements Refactor {
 		                for (Object frag : vFrags) {
 		                    Expression e = ((VariableDeclarationFragment) frag).getInitializer();
 		                    if(isSplitExpression(e)) {
-//		                    	InfixExpression infixExpression = ((InfixExpression) e);
-		                    	
-//		                    	Expression left = infixExpression.getLeftOperand();
-//		                        Expression right = infixExpression.getRightOperand();
-//		                        Operator op = infixExpression.getOperator();
-		                        
-		                    	
-		                        InfixExpression splitExpression = ast.newInfixExpression();
+		                    	Expression left = ((InfixExpression) e).getLeftOperand();
+
 		                        ParenthesizedExpression pExpression = ast.newParenthesizedExpression();
-		                        
-		                        InfixExpression andExpression = ast.newInfixExpression();
-		                        andExpression.setLeftOperand(ast.newSimpleName("from"));
-		                        andExpression.setOperator(Operator.PLUS);
-		                        andExpression.setRightOperand(ast.newSimpleName("to"));
-		                        pExpression.setExpression(andExpression);
-		                        
-		                        splitExpression.setRightOperand(ast.newNumberLiteral("2"));
+		                        InfixExpression plusExpression = ast.newInfixExpression();
+		                        plusExpression.setLeftOperand(ast.newSimpleName("from"));
+		                        plusExpression.setOperator(Operator.PLUS);
+		                        plusExpression.setRightOperand(ast.newSimpleName("to"));
+		                        pExpression.setExpression(plusExpression);
+
+		                        InfixExpression splitExpression = ast.newInfixExpression();
 		                        splitExpression.setLeftOperand(pExpression);
+		                        splitExpression.setRightOperand(ast.newNumberLiteral("2"));
 		                        splitExpression.setOperator(Operator.DIVIDE);
 		                        
-		                    	System.out.println(splitExpression);
-		                    	
 		                    	rewriter.replace(e, splitExpression, null);
+		                    } else if (isCopyExpression(e)) {
+		                    	rewriter.remove((VariableDeclarationStatement)stm, null);
+		                    } else if (isInvokeAllExpression(e)) {
+		                    	
 		                    }
 		                }
 					}
 				}
-//				block.statements().remove(0);
-//				System.out.println(block);
 				return newElseStm;
 			}
 		}
 		throw new UnsupportedOperationException("It is not an Else block!!\n" + elseStm);
+	}
+
+	private boolean isInvokeAllExpression(Expression e) {
+		return false;
+	}
+
+	private boolean isCopyExpression(Expression e) {
+		if (e instanceof MethodInvocation) {
+			if(BlackList.has((MethodInvocation)e)) return true;
+		}
+		return false;
 	}
 
 	private boolean isSplitExpression(Expression e) {

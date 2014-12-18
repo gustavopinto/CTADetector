@@ -11,6 +11,7 @@ public class BlackList {
 	
 	static {
 		methods.add("Arrays.copyOfRange");
+		methods.add("System.arraycopy");
 	}
 	
 	public static boolean has(MethodInvocation method) {
