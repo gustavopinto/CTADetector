@@ -6,9 +6,12 @@ import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.Assignment;
 import org.eclipse.jdt.core.dom.Block;
+import org.eclipse.jdt.core.dom.ClassInstanceCreation;
 import org.eclipse.jdt.core.dom.Expression;
+import org.eclipse.jdt.core.dom.ExpressionStatement;
 import org.eclipse.jdt.core.dom.FieldAccess;
 import org.eclipse.jdt.core.dom.FieldDeclaration;
+import org.eclipse.jdt.core.dom.ITypeBinding;
 import org.eclipse.jdt.core.dom.IfStatement;
 import org.eclipse.jdt.core.dom.InfixExpression;
 import org.eclipse.jdt.core.dom.InfixExpression.Operator;
@@ -31,6 +34,7 @@ import br.ufpe.cin.concurrency.fjdetector.util.BlackList;
 public class ForkJoinCopiedPatternRefactor implements Refactor {
 
 	private final ASTRewrite rewriter;
+	private ITypeBinding dataStructure;
 
 	public ForkJoinCopiedPatternRefactor(ASTRewrite rewriter) {
 		this.rewriter = rewriter;
@@ -90,6 +94,7 @@ public class ForkJoinCopiedPatternRefactor implements Refactor {
 		                    Expression e = ((VariableDeclarationFragment) frag).getInitializer();
 		                    if(isSplitExpression(e)) {
 		                    	Expression left = ((InfixExpression) e).getLeftOperand();
+		                    	this.dataStructure = left.resolveTypeBinding();
 
 		                        ParenthesizedExpression pExpression = ast.newParenthesizedExpression();
 		                        InfixExpression plusExpression = ast.newInfixExpression();
@@ -106,10 +111,33 @@ public class ForkJoinCopiedPatternRefactor implements Refactor {
 		                    	rewriter.replace(e, splitExpression, null);
 		                    } else if (isCopyExpression(e)) {
 		                    	rewriter.remove((VariableDeclarationStatement)stm, null);
-		                    } else if (isInvokeAllExpression(e)) {
-		                    	
 		                    }
-		                }
+		                  }
+					} else if (isInvokeAllExpression(stm)) {
+						if (stm instanceof ExpressionStatement) {
+							Expression ex = ((ExpressionStatement) stm).getExpression();
+							if (ex instanceof MethodInvocation) {
+								MethodInvocation method = (MethodInvocation) ex;
+								for (int i = 0; i < method.arguments().size(); i++) {
+									ClassInstanceCreation instance = (ClassInstanceCreation) method.arguments().get(i);
+									if(i % 2 ==0) {
+										instance.arguments().add(ast.newSimpleName("from"));
+										instance.arguments().add(ast.newSimpleName("split"));
+									} else {
+										ast.newInfixExpression();
+										ParenthesizedExpression pExpression = ast.newParenthesizedExpression();
+				                        InfixExpression plusExpression = ast.newInfixExpression();
+				                        plusExpression.setLeftOperand(ast.newSimpleName("from"));
+				                        plusExpression.setOperator(Operator.PLUS);
+				                        plusExpression.setRightOperand(ast.newSimpleName("split"));
+				                        pExpression.setExpression(plusExpression);
+				                        
+										instance.arguments().add(pExpression);
+										instance.arguments().add(ast.newSimpleName("to"));
+									}
+								}
+							}
+						}
 					}
 				}
 				return newElseStm;
@@ -118,7 +146,14 @@ public class ForkJoinCopiedPatternRefactor implements Refactor {
 		throw new UnsupportedOperationException("It is not an Else block!!\n" + elseStm);
 	}
 
-	private boolean isInvokeAllExpression(Expression e) {
+	private boolean isInvokeAllExpression(Object e) {
+		if (e instanceof ExpressionStatement) {
+			Expression ex = ((ExpressionStatement) e).getExpression();
+			if (ex instanceof MethodInvocation) {
+				MethodInvocation method = (MethodInvocation) ex;
+				if (method.getName().getFullyQualifiedName().equals("invokeAll")) return true;
+			}
+		}
 		return false;
 	}
 
