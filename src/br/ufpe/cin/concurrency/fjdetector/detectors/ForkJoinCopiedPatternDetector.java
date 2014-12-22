@@ -15,8 +15,6 @@ import org.eclipse.jdt.core.dom.ExpressionStatement;
 import org.eclipse.jdt.core.dom.FieldDeclaration;
 import org.eclipse.jdt.core.dom.ITypeBinding;
 import org.eclipse.jdt.core.dom.IfStatement;
-import org.eclipse.jdt.core.dom.InfixExpression;
-import org.eclipse.jdt.core.dom.InfixExpression.Operator;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
 import org.eclipse.jdt.core.dom.MethodInvocation;
 import org.eclipse.jdt.core.dom.ReturnStatement;
@@ -92,7 +90,7 @@ public class ForkJoinCopiedPatternDetector extends ASTVisitor implements Detecto
                 IfStatement ifstmt = (IfStatement) s;
 
                 Expression ife = ifstmt.getExpression();
-                analyzeSequentialCase(ife);
+//                analyzeSequentialCase(ife);
                 
                 Statement elsestmt = ifstmt.getElseStatement();
                 analyzeParallelCase(elsestmt);
@@ -135,20 +133,6 @@ public class ForkJoinCopiedPatternDetector extends ASTVisitor implements Detecto
 			}
 		}
 		throw new UnsupportedOperationException("It is not an Else statement!!");
-	}
-
-	private void analyzeSequentialCase(Expression ife) {
-		if (ife instanceof InfixExpression) {
-        	Expression leftOperand = ((InfixExpression) ife).getLeftOperand();
-            Expression rightOperand = ((InfixExpression) ife).getRightOperand();
-            Operator op = ((InfixExpression) ife).getOperator();
-            
-            boolean ds = isDataStructure(leftOperand);
-            
-//            System.out.println(leftOperand);
-//            System.out.println(op);
-//            System.out.println(rightOperand);
-        }		
 	}
 
 	private List<MethodInvocation> extractMethodInvocations(List stmts) {
